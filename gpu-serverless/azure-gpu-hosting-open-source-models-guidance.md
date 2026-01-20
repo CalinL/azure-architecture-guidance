@@ -1,5 +1,25 @@
 # Azure GPU Hosting Options for Open-Source AI Models
 
+## Table of Contents
+
+- [Executive Summary](#executive-summary)
+- [🎯 Key Use Case: Long Audio File Analysis](#-key-use-case-long-audio-file-analysis-1-2-hours)
+- [1. Azure Container Apps (ACA) with Serverless GPUs](#1-azure-container-apps-aca-with-serverless-gpus)
+- [2. Azure AI Foundry Model Hosting Options](#2-azure-ai-foundry-model-hosting-options)
+- [3. ALL Azure Options for Long Audio Processing](#3-all-azure-options-for-long-audio-processing-1-2-hours)
+- [4. Whisper + Pyannote: Speaker Diarization Considerations](#4-whisper--pyannote-speaker-diarization-considerations)
+  - [No Managed SaaS/PaaS for Pyannote](#️-important-no-managed-saaspaas-for-pyannote)
+  - [Alternative Hugging Face Models](#-alternative-hugging-face-models-for-speaker-diarization)
+- [5. Best Practices for Open-Source Model Hosting on ACA](#5-best-practices-for-open-source-model-hosting-on-aca)
+- [6. Recommendations for Unsupported Regions](#6-recommendations-for-unsupported-regions)
+- [7. Is ACA Serverless GPU the Best Solution?](#7-is-aca-serverless-gpu-the-best-solution-for-long-audio-processing)
+- [8. Complete Cost Comparison Summary](#8-complete-cost-comparison-summary)
+- [9. Action Items](#9-action-items)
+- [References](#references)
+- [Verification Status](#-verification-status)
+
+---
+
 ## Executive Summary
 
 This document provides comprehensive guidance for hosting open-source AI models (Hugging Face, Whisper, Pyannote, etc.) on Azure, with a focus on Azure Container Apps (ACA) with serverless GPUs. It addresses regional availability, **cost optimization**, and best practices for production deployments, specifically for **long-running audio analysis workloads (1-2 hours)** with **speaker diarization**.
