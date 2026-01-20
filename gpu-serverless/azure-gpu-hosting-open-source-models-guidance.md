@@ -318,10 +318,10 @@ Architecture:
 
 **Pros**:
 - ✅ **Lowest cost option** - Spot VMs up to 90% cheaper
-- ✅ **Available in Canada**
+- ✅ **Available in ALL Azure regions** (including unsupported ACA GPU regions)
+- ✅ **Full GPU VM support** - Spot pricing applies to NC, NCv3, ND, NDv2, NV series and all GPU SKUs
 - ✅ Scale-to-zero (pools auto-scale based on job queue)
 - ✅ Full flexibility - any Docker container
-- ✅ Supports large GPU VMs (NC, ND series)
 - ✅ Parallel processing across multiple nodes
 
 **Cons**:
