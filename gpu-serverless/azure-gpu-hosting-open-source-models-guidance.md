@@ -1,4 +1,4 @@
-# Azure GPU Hosting Options for Open-Source AI Models - Customer Guidance
+# Azure GPU Hosting Options for Open-Source AI Models
 
 ## Executive Summary
 
@@ -8,14 +8,14 @@ This document provides comprehensive guidance for hosting open-source AI models 
 
 ## 🎯 Key Use Case: Long Audio File Analysis (1-2 Hours)
 
-Your customer's scenario: **Processing long audio files (1-2 hours) with custom open-source models using serverless GPU**
+Your scenario: **Processing long audio files (1-2 hours) with custom open-source models using serverless GPU**
 
 ### Critical Cost Comparison
 
 | Hosting Option | Billing Model | Cost When Idle | Best For |
 |----------------|---------------|----------------|----------|
-| **ACA Serverless GPU** | **Per-second** | **$0 (scale-to-zero)** | Variable workloads, batch jobs |
-| **Azure Batch (Spot VMs)** | Spot pricing (~90% off) | **$0 (scale-to-zero)** | Maximum savings, batch jobs, Canada OK |
+| **ACA Serverless GPU** | **Per-second** | **$0 (scale-to-zero)** | Variable workloads, batch jobs (supported regions) |
+| **Azure Batch (Spot VMs)** | Spot pricing (~90% off) | **$0 (scale-to-zero)** | Maximum savings, batch jobs, **any region** |
 | **AI Foundry Managed Compute** | Per-hour (VM uptime) | **Continues charging** | 24/7 consistent workloads |
 | **Azure Speech Batch Transcription** | Per-audio-hour | **$0 (pay-per-use)** | Standard Whisper transcription |
 | **Azure Speech Fast Transcription** | Per-audio-hour | **$0 (pay-per-use)** | Files <2 hours, <300MB |
@@ -75,7 +75,7 @@ Billing = (vCPU-seconds × rate) + (GiB-seconds × rate) + (GPU-seconds × rate)
 
 ### 🚨 Regional Availability - CRITICAL LIMITATION
 
-**Canada is NOT supported for ACA serverless GPUs.** 
+**ACA serverless GPUs are only available in specific regions.** Many regions (including Canada, UK, Germany, and others) are NOT supported. Check the table below for current availability. 
 
 | Region | A100 | T4 |
 |--------|------|-----|
@@ -132,11 +132,11 @@ Azure AI Foundry catalogs **11,000+ models** including open-source Hugging Face 
 
 ### Deployment Options Comparison (With Cost Impact)
 
-| Option | Billing Model | Idle Cost | Hugging Face Support | Canada |
-|--------|---------------|-----------|---------------------|--------|
-| **Serverless API** | Pay-per-token | **$0** | ❌ Limited (popular models only) | ✅ Yes |
+| Option | Billing Model | Idle Cost | Hugging Face Support | All Regions |
+|--------|---------------|-----------|---------------------|-------------|
+| **Serverless API** | Pay-per-token | **$0** | ❌ Limited (popular models only) | ✅ Most |
 | **Managed Compute** | Pay-per-VM-hour | **💸 Continues charging** | ✅ Full | ✅ Yes |
-| **ACA Serverless GPU** | Pay-per-second | **$0 (scale-to-zero)** | ✅ Full | ❌ No |
+| **ACA Serverless GPU** | Pay-per-second | **$0 (scale-to-zero)** | ✅ Full | ❌ Limited (17 regions) |
 
 ### ⚠️ Managed Compute Cost Warning
 
@@ -170,16 +170,16 @@ Large models requiring multi-GPU for inference cannot use the simple serverless 
 
 ### Complete Options Matrix
 
-| Option | Model Flexibility | File Size Limit | Billing | Scale-to-Zero | Custom Models | Pyannote | Canada |
-|--------|-------------------|-----------------|---------|---------------|---------------|----------|--------|
-| **ACA Serverless GPU** | ✅ Any model | Unlimited | Per-second | ✅ Yes | ✅ Yes | ✅ Yes | ❌ No |
-| **ACA Jobs + GPU** | ✅ Any model | Unlimited | Per-second | ✅ Yes | ✅ Yes | ✅ Yes | ❌ No |
-| **Azure Batch (Spot VMs)** | ✅ Any model | Unlimited | Spot (~90% off) | ✅ Yes | ✅ Yes | ✅ Yes | ✅ Yes |
-| **Azure Speech Batch Transcription** | Whisper only | Up to 1GB | Per-audio-hour | ✅ Yes | ❌ No | ❌ MS only | ✅ Yes |
-| **Azure Speech Fast Transcription** | Whisper only | <300MB, <2h | Per-audio-hour | ✅ Yes | ❌ No | ❌ MS only | ✅ Yes |
-| **Azure OpenAI Whisper** | Whisper only | 25MB | Per-token | ✅ Yes | ❌ No | ❌ No | ✅ Yes |
-| **AI Foundry Managed Compute** | ✅ Any model | Unlimited | Per-VM-hour | ❌ **No** | ✅ Yes | ✅ Yes | ✅ Yes |
-| **AKS with GPU Nodes** | ✅ Any model | Unlimited | Per-node-hour | ⚠️ Manual | ✅ Yes | ✅ Yes | ✅ Yes |
+| Option | Model Flexibility | File Size Limit | Billing | Scale-to-Zero | Custom Models | Pyannote | Region Availability |
+|--------|-------------------|-----------------|---------|---------------|---------------|----------|---------------------|
+| **ACA Serverless GPU** | ✅ Any model | Unlimited | Per-second | ✅ Yes | ✅ Yes | ✅ Yes | ⚠️ 17 regions only |
+| **ACA Jobs + GPU** | ✅ Any model | Unlimited | Per-second | ✅ Yes | ✅ Yes | ✅ Yes | ⚠️ 17 regions only |
+| **Azure Batch (Spot VMs)** | ✅ Any model | Unlimited | Spot (~90% off) | ✅ Yes | ✅ Yes | ✅ Yes | ✅ All regions |
+| **Azure Speech Batch Transcription** | Whisper only | Up to 1GB | Per-audio-hour | ✅ Yes | ❌ No | ❌ MS only | ✅ Most regions |
+| **Azure Speech Fast Transcription** | Whisper only | <300MB, <2h | Per-audio-hour | ✅ Yes | ❌ No | ❌ MS only | ✅ Most regions |
+| **Azure OpenAI Whisper** | Whisper only | 25MB | Per-token | ✅ Yes | ❌ No | ❌ No | ✅ Most regions |
+| **AI Foundry Managed Compute** | ✅ Any model | Unlimited | Per-VM-hour | ❌ **No** | ✅ Yes | ✅ Yes | ✅ All regions |
+| **AKS with GPU Nodes** | ✅ Any model | Unlimited | Per-node-hour | ⚠️ Manual | ✅ Yes | ✅ Yes | ✅ All regions |
 
 ### Option Details
 
@@ -206,7 +206,7 @@ Architecture:
 - ✅ Full data governance
 
 **Cons**:
-- ❌ Not available in Canada
+- ❌ Limited to 17 supported regions (see availability table)
 - ❌ Requires container image management
 - ❌ Cold start time (mitigated with artifact streaming)
 
@@ -327,7 +327,7 @@ Architecture:
 | **Azure OpenAI Whisper** | ✅ Yes | ❌ No diarization | ✅ Yes | ❌ No |
 | **Self-hosted (ACA, Batch, AKS)** | ✅ Yes | ✅ Pyannote | ❌ You manage | ✅ Yes |
 
-### 🤔 Key Question for the Customer: Is Pyannote Actually Required?
+### 🤔 Key Question: Is Pyannote Actually Required?
 
 **Before investing in custom GPU hosting, evaluate if Azure Speech's built-in diarization meets your needs:**
 
@@ -467,12 +467,12 @@ flowchart TD
 
 ### Options Comparison for Whisper + Pyannote
 
-| Option | Whisper | Pyannote | Billing | Scale-to-Zero | Canada | Cost Rating |
-|--------|---------|----------|---------|---------------|--------|-------------|
-| **ACA Serverless GPU** | ✅ | ✅ | Per-second | ✅ | ❌ | 💰 Lowest |
-| **Azure Batch (Spot VMs)** | ✅ | ✅ | Spot (~90% off) | ✅ | ✅ | 💰 Lowest |
-| **AI Foundry Managed Compute** | ✅ | ✅ | Per-VM-hour | ❌ | ✅ | 💰💰💰💰 High |
-| **Azure Speech Batch** | ✅ | ❌ Microsoft's | Per-audio-hour | ✅ | ✅ | 💰💰 Medium |
+| Option | Whisper | Pyannote | Billing | Scale-to-Zero | Region Availability | Cost Rating |
+|--------|---------|----------|---------|---------------|---------------------|-------------|
+| **ACA Serverless GPU** | ✅ | ✅ | Per-second | ✅ | ⚠️ 17 regions | 💰 Lowest |
+| **Azure Batch (Spot VMs)** | ✅ | ✅ | Spot (~90% off) | ✅ | ✅ All regions | 💰 Lowest |
+| **AI Foundry Managed Compute** | ✅ | ✅ | Per-VM-hour | ❌ | ✅ All regions | 💰💰💰💰 High |
+| **Azure Speech Batch** | ✅ | ❌ Microsoft's | Per-audio-hour | ✅ | ✅ Most regions | 💰💰 Medium |
 
 *Spot VMs may be preempted - design jobs to handle checkpointing.
 
@@ -484,13 +484,13 @@ flowchart TD
     
     B -->|No| C[✅ Azure Speech Batch Transcription<br/>Simpler, fully managed]
     
-    B -->|Yes| D{Is Canada data<br/>residency REQUIRED?}
+    B -->|Yes| D{Is your region supported<br/>for ACA serverless GPU?}
     
-    D -->|No| E[✅ ACA Serverless GPU<br/>Best: per-second billing<br/>Scale-to-zero]
+    D -->|Yes| E[✅ ACA Serverless GPU<br/>Best: per-second billing<br/>Scale-to-zero]
     
-    D -->|Yes| F{Is workload<br/>variable/batch?}
+    D -->|No| F{Is workload<br/>variable/batch?}
     
-    F -->|Yes| G[✅ Azure Batch - Spot VMs<br/>Lowest cost ~90% off<br/>Design for preemption]
+    F -->|Yes| G[✅ Azure Batch - Spot VMs<br/>Lowest cost ~90% off<br/>Available in ALL regions]
     
     F -->|No - 24/7| H[AI Foundry Managed Compute<br/>⚠️ Charges when idle]
     
@@ -543,17 +543,17 @@ For audio processing jobs, cold start matters less since processing time dominat
 
 ---
 
-## 6. Recommendations for Canadian Customers
+## 6. Recommendations for Unsupported Regions
 
-Since ACA serverless GPUs are **not available in Canada**, here are alternatives:
+If your required region is **not supported for ACA serverless GPUs** (e.g., Canada, UK, Germany, Middle East, Africa, etc.), here are alternatives:
 
 ### Option 1: Azure Batch with Spot VMs (✅ RECOMMENDED)
 
-**Best for Whisper + Pyannote in Canada with maximum savings**
+**Best for Whisper + Pyannote in any region with maximum savings**
 
 **Pros**:
 - ✅ Spot pricing - up to 90% off
-- ✅ Available in Canada
+- ✅ **Available in ALL Azure regions**
 - ✅ Full Docker container flexibility
 - ✅ Scale pools based on job queue
 - ✅ Full HuggingFace model support (Whisper, Pyannote)
@@ -563,11 +563,11 @@ Since ACA serverless GPUs are **not available in Canada**, here are alternatives
 - ⚠️ More infrastructure setup required
 - ⚠️ Need checkpointing for long jobs
 
-### Option 2: AI Foundry Managed Compute in Canada Central
+### Option 2: AI Foundry Managed Compute (Any Region)
 
 **Pros**:
 - Full Hugging Face model support
-- Data residency in Canada
+- **Available in all Azure regions** - data stays in your chosen region
 - Enterprise security features
 
 **Cons**:
@@ -578,7 +578,7 @@ Since ACA serverless GPUs are **not available in Canada**, here are alternatives
 - Use Azure Automation to start/stop VMs on schedule
 - Consider if batch processing can be done in off-hours
 
-### Option 3: ACA Serverless GPU in US Region (If US Data Processing OK)
+### Option 3: ACA Serverless GPU in Supported Region (If Cross-Region Processing OK)
 
 **Pros**:
 - ✅ Scale-to-zero capability
@@ -586,15 +586,15 @@ Since ACA serverless GPUs are **not available in Canada**, here are alternatives
 - ✅ Significantly lower cost for variable workloads
 
 **Cons**:
-- Data leaves Canada (compliance concern)
-- Network latency from Canada to US (~20-50ms)
+- Data leaves your local region (compliance concern)
+- Network latency to supported region (~20-100ms depending on distance)
 
 **For audio processing**: Latency is usually acceptable since files are uploaded, processed, and results retrieved asynchronously.
 
 ### Option 4: Azure Speech Batch Transcription (If Standard Whisper + MS Diarization Works)
 
 **Pros**:
-- ✅ Available in Canada
+- ✅ Available in most Azure regions
 - ✅ Pay-per-use (no idle charges)
 - ✅ Handles files up to 1GB
 - ✅ Diarization and word timestamps
@@ -603,31 +603,31 @@ Since ACA serverless GPUs are **not available in Canada**, here are alternatives
 - Standard Whisper only (no custom models)
 - Async processing (may take time to start)
 
-### Recommended Architecture for Canadian Customers (Whisper + Pyannote)
+### Recommended Architecture for Unsupported Regions (Whisper + Pyannote)
 
 ```mermaid
 flowchart LR
-    subgraph Canada["🇨🇦 CANADA-COMPLIANT OPTIONS"]
+    subgraph Unsupported["🌍 OPTIONS FOR UNSUPPORTED REGIONS"]
         direction TB
         
         subgraph A["✅ OPTION A: Azure Batch - Spot VMs (RECOMMENDED)"]
-            A1[Audio Files<br/>Canada] --> A2[Azure Batch<br/>Spot GPU Pool]
-            A2 --> A3["• Spot pricing ~90% off<br/>• Custom Docker container<br/>• May be preempted<br/>• Data stays in Canada"]
+            A1[Audio Files<br/>Your Region] --> A2[Azure Batch<br/>Spot GPU Pool]
+            A2 --> A3["• Spot pricing ~90% off<br/>• Custom Docker container<br/>• May be preempted<br/>• Data stays in your region"]
         end
         
         subgraph B["OPTION B: Azure Speech (If Pyannote NOT required)"]
-            B1[Audio Files<br/>Canada] --> B2[Azure Speech<br/>Batch Transcription]
+            B1[Audio Files<br/>Your Region] --> B2[Azure Speech<br/>Batch Transcription]
             B2 --> B3["• Pay-per-audio-hour<br/>• Built-in diarization (up to 36)<br/>• Files up to 1GB"]
         end
         
-        subgraph C["OPTION C: ACA Serverless (If US processing OK)"]
-            C1[Audio Files<br/>Canada] --> C2[ACA Serverless GPU<br/>East US]
-            C2 --> C3["• Scale-to-zero, per-second<br/>• Whisper + Pyannote<br/>• ⚠️ Data processed in US"]
+        subgraph C["OPTION C: ACA Serverless (If cross-region OK)"]
+            C1[Audio Files<br/>Your Region] --> C2[ACA Serverless GPU<br/>Supported Region]
+            C2 --> C3["• Scale-to-zero, per-second<br/>• Whisper + Pyannote<br/>• ⚠️ Data processed elsewhere"]
         end
         
         subgraph D["OPTION D: AI Foundry (24/7 workloads only)"]
-            D1[Audio Files<br/>Canada] --> D2[AI Foundry<br/>Managed Compute]
-            D2 --> D3["• Canada Central<br/>• ⚠️ Charges when idle<br/>• Only for 24/7 loads"]
+            D1[Audio Files<br/>Your Region] --> D2[AI Foundry<br/>Managed Compute]
+            D2 --> D3["• Your chosen region<br/>• ⚠️ Charges when idle<br/>• Only for 24/7 loads"]
         end
     end
     
@@ -653,7 +653,7 @@ flowchart LR
 
 ### ❌ Consider Alternatives When:
 
-- ❌ **Canada data residency is REQUIRED** → Use **Azure Batch (Spot VMs)**
+- ❌ **Your region doesn't support ACA serverless GPU** → Use **Azure Batch (Spot VMs)** - available everywhere
 - ❌ **Standard Whisper + MS diarization is sufficient** → Use Azure Speech Batch/Fast Transcription (simpler, fully managed)
 - ❌ **24/7 consistent workload** → Managed Compute may be simpler (though still more expensive)
 - ❌ **Need fractional GPU sharing** → Use AKS with GPU sharing
@@ -666,11 +666,11 @@ flowchart LR
 
 | Scenario | Best Option | Billing | Idle Cost |
 |----------|-------------|---------|----------|
-| Variable batch audio processing, US region | **ACA Serverless GPU** | Per-second | **$0** |
-| Whisper + Pyannote, Canada required | **Azure Batch (Spot VMs)** | Spot (~90% off) | **$0** |
+| Variable batch audio processing, supported region | **ACA Serverless GPU** | Per-second | **$0** |
+| Whisper + Pyannote, unsupported region | **Azure Batch (Spot VMs)** | Spot (~90% off) | **$0** |
 | Standard Whisper + MS diarization, files >25MB | **Azure Speech Batch Transcription** | Per-audio-hour | **$0** |
 | Standard Whisper, files <2h, fast turnaround | **Azure Speech Fast Transcription** | Per-audio-hour | **$0** |
-| Custom model, Canada required, 24/7 consistent load | AI Foundry Managed Compute | Per-hour | **💸 Continues** |
+| Custom model, unsupported region, 24/7 consistent load | AI Foundry Managed Compute | Per-hour | **💸 Continues** |
 | Maximum control/customization | AKS with GPU Nodes | Per-node-hour | **💸 Continues** |
 
 ### Cost Formula Comparison (Monthly Estimate)
@@ -699,25 +699,26 @@ For **high-volume, steady 24/7 workloads** (e.g., continuous audio processing wi
 
 ---
 
-## 9. Action Items for Customer
+## 9. Action Items
 
 1. **Clarify Data Residency Requirements**
-   - If Canada REQUIRED → Plan for **Azure Batch (Spot VMs)**
-   - If US acceptable → ✅ ACA Serverless GPU is optimal
+   - Check if your required region supports ACA serverless GPU (see availability table)
+   - If NOT supported → Plan for **Azure Batch (Spot VMs)** or **AI Foundry Managed Compute**
+   - If cross-region processing is acceptable → ✅ ACA Serverless GPU is optimal
 
 2. **Evaluate if Pyannote is Required (vs Azure Speech diarization)**
-   - If Pyannote NOT required → Azure Speech Batch Transcription (simplest, Canada available)
+   - If Pyannote NOT required → Azure Speech Batch Transcription (simplest, most regions)
    - If Pyannote required → Need custom model hosting (ACA, Azure ML Batch, or Azure Batch)
 
 3. **Evaluate if Standard Whisper Works**
-   - If YES → Azure Speech Batch/Fast Transcription (simplest, Canada available)
+   - If YES → Azure Speech Batch/Fast Transcription (simplest, most regions)
    - If NO (need custom Whisper variant) → Custom model hosting required
 
 4. **Assess Workload Patterns**
    - Variable with idle time → ✅ ACA Serverless GPU or Azure ML Batch/Azure Batch
    - 24/7 consistent → Managed Compute (but still more expensive)
 
-5. **Evaluate Preemption Tolerance** (for Canada workloads)
+5. **Evaluate Preemption Tolerance** (for Spot VM option)
    - Can tolerate preemption → Azure Batch (Spot VMs) for lowest cost
    - Need guaranteed execution → AI Foundry Managed Compute or dedicated VMs
 
@@ -787,7 +788,7 @@ The following information has been verified against official Microsoft Learn doc
 
 | Claim | Verified | Source |
 |-------|----------|--------|
-| ACA Serverless GPU: 17 regions (Canada NOT available) | ✅ | [ACA GPU Overview](https://learn.microsoft.com/en-us/azure/container-apps/gpu-serverless-overview) |
+| ACA Serverless GPU: 17 supported regions (many regions NOT available) | ✅ | [ACA GPU Overview](https://learn.microsoft.com/en-us/azure/container-apps/gpu-serverless-overview) |
 | ACA T4: 16GB VRAM, A100: 80GB HBM2e | ✅ | [ACA GPU Types](https://learn.microsoft.com/en-us/azure/container-apps/gpu-types) |
 | Speech Batch Transcription: 1GB max, 240min with diarization | ✅ | [Speech Quotas](https://learn.microsoft.com/en-us/azure/ai-services/speech-service/speech-services-quotas-and-limits) |
 | Speech Fast Transcription: <300MB, <120min | ✅ | [Speech Quotas](https://learn.microsoft.com/en-us/azure/ai-services/speech-service/speech-services-quotas-and-limits) |
