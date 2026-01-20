@@ -361,6 +361,76 @@ Azure Speech Service has built-in diarization, but **Pyannote offers**:
 - Fine-tuning capability on your own data
 - State-of-the-art performance on benchmarks
 
+### 🔄 Alternative Hugging Face Models for Speaker Diarization
+
+If Pyannote doesn't fit your needs (licensing, performance, or ease of use), consider these alternatives:
+
+| Model/Framework | Type | License | VRAM | Best For |
+|-----------------|------|---------|------|----------|
+| **[Pyannote 3.1](https://huggingface.co/pyannote/speaker-diarization-3.1)** | Full pipeline | MIT | ~2-4 GB | State-of-the-art diarization, overlapped speech |
+| **[NVIDIA NeMo](https://github.com/NVIDIA/NeMo)** | Full toolkit | Apache 2.0 | ~2-6 GB | Enterprise-grade, NVIDIA GPU optimized, Riva deployment |
+| **[SpeechBrain ECAPA-TDNN](https://huggingface.co/speechbrain/spkrec-ecapa-voxceleb)** | Speaker embeddings | Apache 2.0 | ~1-2 GB | Speaker verification, embedding extraction |
+| **[Wav2Vec2 + clustering](https://huggingface.co/facebook/wav2vec2-large-960h)** | DIY approach | MIT | ~2-4 GB | Custom pipelines, research flexibility |
+| **[WhisperX](https://github.com/m-bain/whisperX)** | Whisper + diarization | BSD | ~4-8 GB | Combined transcription + diarization in one |
+
+#### Option 1: NVIDIA NeMo (⭐ Recommended Enterprise Alternative)
+
+**NVIDIA NeMo** is a scalable AI framework with built-in speaker diarization:
+- ✅ Apache 2.0 license (enterprise-friendly)
+- ✅ Optimized for NVIDIA GPUs
+- ✅ Can deploy to production with **NVIDIA Riva**
+- ✅ Active development, 16k+ GitHub stars
+- ✅ Includes ASR, TTS, and speaker diarization in one toolkit
+
+```python
+# NeMo speaker diarization example
+from nemo.collections.asr.models import ClusteringDiarizer
+diarizer = ClusteringDiarizer.from_pretrained("nvidia/speakerdiarization_en")
+```
+
+#### Option 2: SpeechBrain ECAPA-TDNN
+
+**SpeechBrain** provides speaker embedding models that can be combined with clustering for diarization:
+- ✅ Apache 2.0 license
+- ✅ Pre-trained on VoxCeleb (1M+ downloads/month)
+- ✅ Easy to integrate with custom clustering
+- ⚠️ Requires building your own diarization pipeline
+
+```python
+# SpeechBrain speaker embeddings
+from speechbrain.inference.speaker import EncoderClassifier
+classifier = EncoderClassifier.from_hparams(source="speechbrain/spkrec-ecapa-voxceleb")
+embeddings = classifier.encode_batch(audio_signal)
+# Then cluster embeddings to identify speakers
+```
+
+#### Option 3: WhisperX (Easiest Combined Solution)
+
+**WhisperX** combines Whisper transcription with speaker diarization in a single package:
+- ✅ Combines Whisper + Pyannote + forced alignment
+- ✅ Word-level timestamps with speaker attribution
+- ✅ Single package, easy to deploy
+- ⚠️ Uses Pyannote under the hood (requires accepting Pyannote license)
+
+```python
+# WhisperX combined transcription + diarization
+import whisperx
+model = whisperx.load_model("large-v3", device="cuda")
+result = model.transcribe(audio_file)
+diarize_result = whisperx.DiarizationPipeline()(audio_file)
+```
+
+#### Comparison: Pyannote vs Alternatives
+
+| Criteria | Pyannote | NVIDIA NeMo | SpeechBrain | WhisperX |
+|----------|----------|-------------|-------------|----------|
+| **Accuracy (DER)** | Best (~12-25%) | Very Good | Good (needs pipeline) | Good (uses Pyannote) |
+| **Ease of Use** | Easy | Medium | Medium | Easiest |
+| **License** | MIT (with contact form) | Apache 2.0 | Apache 2.0 | BSD |
+| **Enterprise Support** | Commercial option | NVIDIA Riva | Community | Community |
+| **Overlapped Speech** | ✅ Best | ✅ Good | ⚠️ Limited | ✅ Good |
+| **Production Ready** | ✅ Yes | ✅ Yes (Riva) | ⚠️ Custom | ⚠️ Custom |
+
 ### GPU Memory Requirements
 
 Running both models requires more VRAM:
