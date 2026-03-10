@@ -95,12 +95,13 @@ Billing = (vCPU-seconds × rate) + (GiB-seconds × rate) + (GPU-seconds × rate)
 
 ### 🚨 Regional Availability - CRITICAL LIMITATION
 
-**ACA serverless GPUs are only available in specific regions.** Many regions (including Canada, UK, Germany, and others) are NOT supported. Check the table below for current availability. 
+**ACA serverless GPUs are only available in specific regions.** Many regions (including UK, Germany, and others) are NOT supported. Check the table below for current availability. 
 
 | Region | A100 | T4 |
 |--------|------|-----|
 | **Australia East** | ✅ Yes | ✅ Yes |
 | **Brazil South** | ✅ Yes | ✅ Yes |
+| **Canada Central** | ✅ Yes | ✅ Yes |
 | **Central India** | ❌ No | ✅ Yes |
 | **East US** | ✅ Yes | ✅ Yes |
 | **France Central** | ❌ No | ✅ Yes |
@@ -115,8 +116,7 @@ Billing = (vCPU-seconds × rate) + (GiB-seconds × rate) + (GPU-seconds × rate)
 | **West US** | ✅ Yes | ✅ Yes |
 | **West US 2** | ❌ No | ✅ Yes |
 | **West US 3** | ✅ Yes | ✅ Yes |
-| **Canada Central** | ❌ **NOT AVAILABLE** | ❌ **NOT AVAILABLE** |
-| **Canada East** | ❌ **NOT AVAILABLE** | ❌ **NOT AVAILABLE** |
+| **Canada East** | ❌ Not available | ❌ Not available |
 
 *West Europe requires creating a new workload profile environment.
 
@@ -128,6 +128,7 @@ Billing = (vCPU-seconds × rate) + (GiB-seconds × rate) + (GPU-seconds × rate)
 4. **Quota Required**: Must request GPU quotas via Azure support case (EA/Pay-as-you-go have default quota)
 5. **Instance Limits**: Max 1× A100 GPU, 24 vCPU, 96 GB RAM per container instance
 6. **Network**: Consumes one IP address per replica when using VNet integration
+7. **Foundry Models (Preview)**: You can deploy Microsoft Foundry models (MLFLOW type) directly to ACA serverless GPUs using `az containerapp up` with `--model-registry`, `--model-name`, and `--model-version` parameters
 
 ### Why NOT Other Azure Services?
 
@@ -301,7 +302,7 @@ Limits:
 - ❌ Standard Whisper only
 - ❌ Uses Microsoft's diarization (NOT Pyannote)
 
-#### Option 5: Azure Batch with Spot VMs (✅ RECOMMENDED FOR CANADA)
+#### Option 5: Azure Batch with Spot VMs (✅ RECOMMENDED FOR LOWEST COST)
 
 **Best for**: Maximum cost savings, large-scale batch processing, full infrastructure control
 
@@ -565,7 +566,7 @@ For audio processing jobs, cold start matters less since processing time dominat
 
 ## 6. Recommendations for Unsupported Regions
 
-If your required region is **not supported for ACA serverless GPUs** (e.g., Canada, UK, Germany, Middle East, Africa, etc.), here are alternatives:
+If your required region is **not supported for ACA serverless GPUs** (e.g., Canada East, UK, Germany, Middle East, Africa, etc.), here are alternatives:
 
 ### Option 1: Azure Batch with Spot VMs (✅ RECOMMENDED)
 
@@ -799,7 +800,7 @@ For **high-volume, steady 24/7 workloads** (e.g., continuous audio processing wi
 ---
 
 *Document prepared: January 2026*
-*Last verified against official Microsoft documentation: January 20, 2026*
+*Last verified against official Microsoft documentation: March 10, 2026*
 *Based on current Azure documentation and service availability*
 
 ### ✅ Verification Status
@@ -808,7 +809,8 @@ The following information has been verified against official Microsoft Learn doc
 
 | Claim | Verified | Source |
 |-------|----------|--------|
-| ACA Serverless GPU: 17 supported regions (many regions NOT available) | ✅ | [ACA GPU Overview](https://learn.microsoft.com/en-us/azure/container-apps/gpu-serverless-overview) |
+| ACA Serverless GPU: 17 supported regions including Canada Central (many regions NOT available) | ✅ | [ACA GPU Overview](https://learn.microsoft.com/en-us/azure/container-apps/gpu-serverless-overview) |
+| ACA Foundry Models deployment to serverless GPUs (preview) | ✅ | [ACA GPU Overview](https://learn.microsoft.com/en-us/azure/container-apps/gpu-serverless-overview) |
 | ACA T4: 16GB VRAM, A100: 80GB HBM2e | ✅ | [ACA GPU Types](https://learn.microsoft.com/en-us/azure/container-apps/gpu-types) |
 | Speech Batch Transcription: 1GB max, 240min with diarization | ✅ | [Speech Quotas](https://learn.microsoft.com/en-us/azure/ai-services/speech-service/speech-services-quotas-and-limits) |
 | Speech Fast Transcription: <300MB, <120min | ✅ | [Speech Quotas](https://learn.microsoft.com/en-us/azure/ai-services/speech-service/speech-services-quotas-and-limits) |
