@@ -551,6 +551,8 @@ private_dns_zone:
 
 ## Azure DNS Private Resolver
 
+> **Deep dive:** See [Private DNS Zones and Azure DNS Private Resolver](./connectivity-dns-private-zones-resolver.md) for a detailed explanation of centralized vs. distributed DNS patterns, name collision resolution, and the role of each component in enterprise hub-spoke topologies.
+
 For complex DNS scenarios and conditional forwarding:
 
 ```yaml
