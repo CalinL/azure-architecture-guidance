@@ -34,6 +34,14 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
+      - name: Prepare docs directory
+        run: |
+          mkdir -p docs
+          cp README.md docs/index.md
+          for dir in aca azure-tenant foundry foundry-sharepoint gpu-serverless mdc mission-critical-saas monitor; do
+            cp -r "$dir" docs/
+          done
+
       - name: Configure Git for deployment
         run: |
           git config --global user.name "github-actions[bot]"
