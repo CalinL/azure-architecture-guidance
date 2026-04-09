@@ -1,0 +1,92 @@
+site_name: Azure Architecture Guidance
+site_description: Architecture guidance and best practices for enterprise Azure solutions
+site_url: https://calinl.github.io/azure-architecture-guidance/
+repo_url: https://github.com/CalinL/azure-architecture-guidance
+repo_name: CalinL/azure-architecture-guidance
+edit_uri: edit/main/
+
+docs_dir: '.'
+
+theme:
+  name: material
+  palette:
+    - scheme: default
+      primary: blue
+      accent: light blue
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: blue
+      accent: light blue
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.top
+    - navigation.instant
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.action.edit
+
+plugins:
+  - search
+
+markdown_extensions:
+  - admonition
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.superfences
+  - pymdownx.details
+
+nav:
+  - Home: README.md
+  - Azure Container Apps:
+    - Easy Auth Deep Dive: aca/container-apps-easy-auth-deep-dive.md
+  - Azure Landing Zone:
+    - Overview: azure-tenant/README.md
+    - Identity Landing Zone: azure-tenant/01-identity-landing-zone.md
+    - Management Landing Zone: azure-tenant/02-management-landing-zone.md
+    - Connectivity Landing Zone: azure-tenant/03-connectivity-landing-zone.md
+    - EA & Subscription Architecture: azure-tenant/04-ea-subscription-architecture.md
+    - Terraform Implementation: azure-tenant/05-terraform-implementation.md
+    - GitHub Actions CI/CD: azure-tenant/06-github-actions-cicd.md
+    - Application Landing Zone: azure-tenant/07-application-landing-zone.md
+    - Compliance Baseline: azure-tenant/08-compliance-baseline.md
+    - Day 1 / Day 2 Prioritization: azure-tenant/09-day1-day2-prioritization.md
+    - DNS Private Zones & Resolver: azure-tenant/connectivity-dns-private-zones-resolver.md
+  - Microsoft Foundry:
+    - Comprehensive Models Guide: foundry/microsoft-foundry-models-comprehensive-guide.md
+    - Deploying Claude Models: foundry/deploying-claude-models-microsoft-foundry.md
+    - Content Safety & Guardrails: foundry/Microsoft_Foundry_Content_Safety_Insurance_Solutions.md
+    - Private Networking Comparison: foundry/microsoft-foundry-private-networking-comparison.md
+    - Tracing & Observability: foundry/microsoft-foundry-tracing-guide.md
+  - SharePoint + Foundry:
+    - AI Knowledge Accelerator: foundry-sharepoint/SharePoint-Foundry-Accelerator-Research.md
+  - GPU & AI Models:
+    - GPU Hosting Options: gpu-serverless/azure-gpu-hosting-open-source-models-guidance.md
+  - Mission-Critical SaaS:
+    - Azure Container Apps Overview: mission-critical-saas/azure-container-apps-overview.md
+    - API & AI Gateway Architecture: mission-critical-saas/api-ai-gateway-architecture.md
+    - Load Balancing with APIM: mission-critical-saas/apim-load-balancing.md
+    - Service Bus with Microservices: mission-critical-saas/service-bus-microservices.md
+  - Monitoring:
+    - Application Insights Guide: monitor/application-insights-comprehensive-guide.md
+  - Security:
+    - Defender for Storage: mdc/microsoft-defender-for-storage-malware-scanning.md
+
+exclude_docs: |
+  .git/**
+  .github/**
+  .gitignore
+  mkdocs.yml
+  requirements.txt
+  LICENSE
+  azure-tenant/prompt-plan.md
+  monitor/application-insights-initial-prompt.md
