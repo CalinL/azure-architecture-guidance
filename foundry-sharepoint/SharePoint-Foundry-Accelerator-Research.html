@@ -1,0 +1,1040 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SharePoint + Microsoft Foundry: AI Knowledge Accelerator</title>
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+<style>
+:root{--blue:#064dd9;--dark:#01233f;--bh:#2962ff;--ba:#003da5;--bb1:#dbf0ff;--bb2:#c7e7ff;--med:#73c4ef;--grey:#8c8c87;--tx:#1b1b1b;--tx2:#6b6b6b;--g1:#eff1f4;--g2:#e0e4e9;--g3:#d3d8de;--pear:#cddc3a;--ok:#318500;--warn:#ef6d19;--err:#e71313;--r:8px;--sh:0 2px 12px rgba(0,0,0,.08)}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;scroll-padding-top:70px}
+body{font-family:"Open Sans",system-ui,sans-serif;color:var(--tx);line-height:1.7;background:#fff}
+h1,h2,h3,h4,h5{font-family:Inter,"Open Sans",sans-serif;line-height:1.3}
+a{color:var(--blue);text-decoration:none;transition:color .2s}
+a:hover{color:var(--bh);text-decoration:underline}
+.wrap{max-width:1200px;margin:0 auto;padding:0 24px}
+.nav{position:fixed;top:0;left:0;right:0;z-index:1000;background:var(--dark);min-height:60px;display:flex;align-items:center;box-shadow:0 2px 8px rgba(0,0,0,.3);padding:6px 0}
+.nav .wrap{display:flex;align-items:center;flex-wrap:wrap;gap:6px;width:100%}
+.nav-brand{color:#fff;font-family:Inter,sans-serif;font-weight:700;font-size:.95rem;white-space:nowrap;margin-right:auto}
+.nav-links{display:flex;gap:2px;flex-wrap:wrap}
+.nav-links a{color:rgba(255,255,255,.8);font-size:.73rem;padding:6px 8px;border-radius:var(--r);transition:all .2s;white-space:nowrap;text-decoration:none}
+.nav-links a:hover,.nav-links a.active{color:#fff;background:rgba(255,255,255,.12);text-decoration:none}
+.nav-toggle{display:none;background:none;border:none;color:#fff;font-size:28px;cursor:pointer;padding:4px}
+.hero{margin-top:90px;background:linear-gradient(135deg,var(--dark) 0%,var(--blue) 50%,var(--bh) 100%);padding:80px 0 60px;color:#fff;position:relative;overflow:hidden}
+.hero h1{font-size:2.6rem;margin-bottom:12px;position:relative;z-index:1}
+.hero .subtitle{color:var(--pear);font-size:1.25rem;font-weight:600;margin-bottom:8px;position:relative;z-index:1}
+.hero .meta{opacity:.75;font-size:.88rem;position:relative;z-index:1}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;margin:-40px auto 40px;position:relative;z-index:2}
+.stat{background:#fff;border-radius:var(--r);padding:28px 20px;text-align:center;box-shadow:var(--sh);border-top:4px solid var(--blue);transition:transform .3s,box-shadow .3s}
+.stat:hover{transform:translateY(-4px);box-shadow:0 8px 24px rgba(0,0,0,.12)}
+.stat .num{font-family:Inter,sans-serif;font-size:2.4rem;font-weight:700;color:var(--blue);line-height:1.1}
+.stat .lbl{font-size:.85rem;color:var(--tx2);margin-top:4px}
+.sec{padding:56px 0}
+.sec.alt{background:var(--g1)}
+.sec-hd{display:flex;align-items:center;gap:14px;margin-bottom:28px}
+.sec-hd .bar{width:5px;height:36px;background:var(--pear);border-radius:3px;flex-shrink:0}
+.sec-hd h2{font-size:1.7rem;color:var(--blue)}
+.sec-hd .material-icons-outlined{font-size:28px;color:var(--blue)}
+.C{background:#fff;border-radius:var(--r);padding:24px;box-shadow:var(--sh);border-left:5px solid var(--g3);margin-bottom:20px;transition:transform .2s,box-shadow .2s}
+.C:hover{transform:translateY(-2px);box-shadow:0 4px 20px rgba(0,0,0,.1)}
+.C.a{border-left-color:var(--blue)}.C.p{border-left-color:var(--pear)}.C.r{border-left-color:var(--ok)}.C.w{border-left-color:var(--warn)}.C.e{border-left-color:var(--err)}
+.C h3{font-size:1.1rem;color:var(--dark);margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.C h3 .material-icons-outlined{font-size:20px;color:var(--blue)}
+.C p,.C li{font-size:.9rem;color:var(--tx2);line-height:1.7}
+.C ul,.C ol{margin-left:20px;margin-top:6px}
+.KF{background:linear-gradient(135deg,var(--dark),#0a2d5c);border-radius:var(--r);padding:28px;color:#fff;margin:20px 0;box-shadow:0 4px 20px rgba(0,0,0,.15)}
+.KF h3{color:var(--pear);font-size:1.05rem;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.KF p,.KF li{color:rgba(255,255,255,.9);font-size:.9rem}
+.KF ol,.KF ul{margin-left:20px;margin-top:6px}
+.tbl-wrap{overflow-x:auto;margin:16px 0;border-radius:var(--r);box-shadow:var(--sh)}
+table{width:100%;border-collapse:collapse;font-size:.85rem}
+thead th{background:var(--blue);color:#fff;padding:11px 14px;text-align:left;font-weight:600;white-space:nowrap}
+tbody td{padding:9px 14px;border-bottom:1px solid var(--g2)}
+tbody tr:nth-child(even){background:var(--g1)}
+tbody tr:hover{background:var(--bb1)}
+tbody td:first-child{font-weight:600;color:var(--dark)}
+.grid2{display:grid;grid-template-columns:repeat(2,1fr);gap:20px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.grid23{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:20px}
+.tabs{margin:20px 0}
+.tab-nav{display:flex;gap:4px;border-bottom:3px solid var(--g2);margin-bottom:0;flex-wrap:wrap}
+.tab-btn{padding:10px 20px;background:var(--g1);border:none;border-radius:var(--r) var(--r) 0 0;cursor:pointer;font-family:"Open Sans",sans-serif;font-size:.85rem;font-weight:600;color:var(--tx2);transition:all .2s}
+.tab-btn:hover{background:var(--bb1);color:var(--blue)}
+.tab-btn.active{background:var(--blue);color:#fff}
+.tab-panel{display:none;padding:24px;background:#fff;border:1px solid var(--g2);border-top:none;border-radius:0 0 var(--r) var(--r)}
+.tab-panel.active{display:block}
+.tab-panel h3{color:var(--dark);font-size:1.15rem;margin-bottom:10px}
+.tab-panel h4{color:var(--blue);margin:14px 0 8px}
+.svg-wrap{margin:16px 0;background:var(--g1);border-radius:var(--r);padding:16px;text-align:center}
+.svg-wrap svg{max-width:100%;height:auto}
+pre{background:var(--dark);color:#e0e0e0;padding:18px;border-radius:var(--r);overflow-x:auto;font-size:.82rem;line-height:1.6;margin:14px 0}
+code{font-family:"Cascadia Code","Fira Code",Consolas,monospace}
+p code{background:var(--g1);padding:2px 6px;border-radius:4px;font-size:.85em;color:var(--dark)}
+.collapse-toggle{display:flex;align-items:center;gap:8px;cursor:pointer;padding:10px 0;user-select:none}
+.collapse-toggle .material-icons-outlined{transition:transform .3s;font-size:20px;color:var(--blue)}
+.collapse-toggle.open .material-icons-outlined{transform:rotate(90deg)}
+.collapse-body{max-height:0;overflow:hidden;transition:max-height .4s ease}
+.collapse-body.open{max-height:none}
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:.72rem;font-weight:600;line-height:1.4}
+.badge-blue{background:var(--bb1);color:var(--blue)}.badge-green{background:#e8f5e9;color:var(--ok)}.badge-warn{background:#fff3e0;color:var(--warn)}.badge-red{background:#ffebee;color:var(--err)}.badge-pear{background:#f0f4c3;color:#616d00}
+.timeline{position:relative;padding-left:40px;margin:24px 0}
+.timeline::before{content:"";position:absolute;left:16px;top:0;bottom:0;width:3px;background:linear-gradient(var(--blue),var(--pear))}
+.tl-item{position:relative;margin-bottom:24px}
+.tl-item::before{content:"";position:absolute;left:-32px;top:4px;width:14px;height:14px;border-radius:50%;background:var(--blue);border:3px solid #fff;box-shadow:0 0 0 2px var(--blue)}
+.tl-item.p2::before{background:var(--bh);box-shadow:0 0 0 2px var(--bh)}
+.tl-item.p3::before{background:var(--pear);box-shadow:0 0 0 2px var(--pear)}
+.tl-item h4{color:var(--dark);font-size:.95rem;margin-bottom:3px}
+.tl-item p{font-size:.85rem;color:var(--tx2)}
+.fade-in{opacity:0;transform:translateY(24px);transition:opacity .6s ease,transform .6s ease}
+.fade-in.visible{opacity:1;transform:translateY(0)}
+.footer{background:var(--dark);color:rgba(255,255,255,.7);padding:40px 0;font-size:.82rem;text-align:center}
+.footer a{color:var(--med)}
+.note{background:var(--bb1);border-left:4px solid var(--blue);padding:12px 16px;border-radius:0 var(--r) var(--r) 0;margin:14px 0;font-size:.88rem}
+.warn-box{background:#fff3e0;border-left:4px solid var(--warn);padding:12px 16px;border-radius:0 var(--r) var(--r) 0;margin:14px 0;font-size:.88rem}
+.err-box{background:#ffebee;border-left:4px solid var(--err);padding:12px 16px;border-radius:0 var(--r) var(--r) 0;margin:14px 0;font-size:.88rem}
+.ref-list{list-style:none;margin:0;padding:0}
+.ref-list li{padding:5px 0;font-size:.85rem;border-bottom:1px solid var(--g1)}
+.ref-cat{font-size:1rem;color:var(--dark);font-weight:700;margin:20px 0 8px;font-family:Inter,sans-serif}
+ul.anti{list-style:none}
+ul.anti li{padding:6px 0;font-size:.9rem;display:flex;align-items:flex-start;gap:8px}
+ul.anti .material-icons-outlined{color:var(--warn);font-size:18px;flex-shrink:0;margin-top:3px}
+@media(max-width:900px){.stats{grid-template-columns:repeat(2,1fr)}.grid2,.grid3,.grid23{grid-template-columns:1fr}.hero h1{font-size:1.8rem}.nav-links{display:none;position:absolute;top:60px;left:0;right:0;background:var(--dark);flex-direction:column;padding:12px 24px;gap:4px;box-shadow:0 4px 12px rgba(0,0,0,.3)}.nav-links.show{display:flex}.nav-toggle{display:block}.tab-nav{flex-direction:column}.tab-btn{border-radius:var(--r)}}
+@media(max-width:600px){.stats{grid-template-columns:1fr}.hero{padding:60px 0 40px}.hero h1{font-size:1.4rem}.sec{padding:36px 0}}
+@media print{.nav{display:none}.hero{margin-top:0;padding:30px 0;background:var(--dark)!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}.fade-in{opacity:1!important;transform:none!important}.sec{padding:24px 0;page-break-inside:avoid}.tab-panel{display:block!important;border:1px solid var(--g3);margin-bottom:12px}.tab-nav{display:none}.collapse-body{max-height:none!important}.C,.KF{page-break-inside:avoid}.stats{grid-template-columns:repeat(4,1fr)}}
+</style>
+</head>
+<body><nav class="nav"><div class="wrap">
+<span class="nav-brand"><span class="material-icons-outlined" style="font-size:20px;vertical-align:middle;margin-right:4px">auto_awesome</span> SP + Foundry Research</span>
+<button class="nav-toggle" onclick="document.querySelector('.nav-links').classList.toggle('show')" aria-label="Toggle navigation"><span class="material-icons-outlined">menu</span></button>
+<div class="nav-links">
+<a href="#exec">Summary</a><a href="#problem">Problem</a><a href="#prereq">Prerequisites</a><a href="#blocks">Blocks</a><a href="#tree">Decision Tree</a><a href="#options">Options A-E</a><a href="#matrix">Matrix</a><a href="#iq-vs-sp">IQ vs SP</a><a href="#ai-sp">AI in SP</a><a href="#teams">Teams</a><a href="#history">History</a><a href="#security">Security</a><a href="#limits">Limits</a><a href="#pricing">Pricing</a><a href="#anti">Anti-Patterns</a><a href="#samples">Samples</a><a href="#rec">Recommendation</a><a href="#refs">Refs</a>
+</div></div></nav>
+
+<header class="hero"><div class="wrap">
+<div class="subtitle">Deep Research &amp; Recommendations</div>
+<h1>SharePoint + Microsoft Foundry<br>AI Knowledge Accelerator</h1>
+<p class="meta">Research compiled April 2026 | Peer-reviewed by GPT-5.2, Claude Sonnet 4.5, Claude Sonnet 4</p>
+</div></header>
+
+<div class="wrap"><div class="stats">
+<div class="stat fade-in"><div class="num">5</div><div class="lbl">Architecture Options</div></div>
+<div class="stat fade-in"><div class="num">58</div><div class="lbl">References</div></div>
+<div class="stat fade-in"><div class="num">23</div><div class="lbl">Official Docs</div></div>
+<div class="stat fade-in"><div class="num">3</div><div class="lbl">AI Reviewers</div></div>
+</div></div>
+<section class="sec" id="exec"><div class="wrap">
+<div class="sec-hd fade-in"><div class="bar"></div><span class="material-icons-outlined">summarize</span><h2>Executive Summary</h2></div>
+<p class="fade-in" style="font-size:.95rem;margin-bottom:16px">Microsoft provides multiple paths for building AI-powered Q&amp;A agents over SharePoint content, ranging from zero-code to fully custom.</p>
+<div class="KF fade-in">
+<h3><span class="material-icons-outlined">lightbulb</span> Recommended Strategy</h3>
+<ol>
+<li><strong>Start with Option A</strong> (Foundry Agent + Foundry IQ + Teams) for fastest time-to-value</li>
+<li><strong>Evolve to Option E</strong> (Hybrid) only when real user feedback demands a custom web app or advanced analytics</li>
+</ol>
+</div>
+<p class="fade-in" style="font-size:.92rem;margin:16px 0">The core stack combines:</p>
+<ul class="fade-in" style="margin-left:20px;font-size:.92rem">
+<li><strong>Microsoft Foundry Agent Service</strong> -- orchestrates the AI agent logic</li>
+<li><strong>Foundry IQ</strong> (Preview) -- managed knowledge layer that indexes SharePoint via Azure AI Search</li>
+<li><strong>Azure AI Search</strong> -- powers hybrid (keyword + vector) retrieval with ACL enforcement</li>
+<li><strong>Azure Bot Service / M365 Agents SDK</strong> -- bridges the agent to Teams and/or a custom web app</li>
+<li><strong>Azure Cosmos DB</strong> (optional) -- adds persistent conversation history and Q&amp;A analytics</li>
+</ul>
+<div class="warn-box fade-in" style="margin-top:16px"><strong>Important:</strong> Foundry IQ and the SharePoint tool in Foundry Agent Service are <strong>two different mechanisms</strong> with different capabilities and limitations.</div>
+</div></section>
+
+<section class="sec alt" id="problem"><div class="wrap">
+<div class="sec-hd fade-in"><div class="bar"></div><span class="material-icons-outlined">report_problem</span><h2>Problem Statement</h2></div>
+<div class="C a fade-in">
+<h3><span class="material-icons-outlined">search_off</span> The Challenge</h3>
+<p>Organizations store critical knowledge across SharePoint. Employees struggle because:</p>
+<ul><li>Content is scattered across dozens of sites and libraries</li><li>Search returns documents, not answers</li><li>No institutional memory of previously answered questions</li><li>No contextual follow-up (each search is isolated)</li></ul>
+</div>
+<div class="C r fade-in">
+<h3><span class="material-icons-outlined">flag</span> Goal</h3>
+<ol><li>Answer natural-language questions grounded in SharePoint content</li><li>Cite specific source documents</li><li>Respect SharePoint permissions (security trimming)</li><li>Track conversation history for follow-up questions</li><li>Cache and surface popular Q&amp;A pairs for analytics</li><li>Accessible via Teams AND/OR a web application</li></ol>
+</div>
+</div></section>
+<section class="sec" id="prereq"><div class="wrap">
+<div class="sec-hd fade-in"><div class="bar"></div><span class="material-icons-outlined">checklist</span><h2>Prerequisites &amp; Licensing</h2></div>
+<h3 class="fade-in" style="color:var(--dark);margin-bottom:12px">Required Licenses &amp; Subscriptions</h3>
+<div class="tbl-wrap fade-in"><table>
+<thead><tr><th>Requirement</th><th>Details</th></tr></thead>
+<tbody>
+<tr><td>Azure subscription</td><td>Pay-as-you-go or Enterprise Agreement</td></tr>
+<tr><td>Microsoft 365</td><td>E3 or E5 (for SharePoint Online content)</td></tr>
+<tr><td>M365 Copilot license</td><td>Required for remote SP queries via Copilot Retrieval API; OR pay-as-you-go $0.10/call (Preview). NOT required if using indexed approach.</td></tr>
+<tr><td>Azure OpenAI access</td><td>Approved Azure OpenAI resource with GPT-4o deployment</td></tr>
+<tr><td>Entra ID</td><td>App registrations for authentication (OBO flow)</td></tr>
+</tbody></table></div>
+
+<h3 class="fade-in" style="color:var(--dark);margin:24px 0 12px">Azure RBAC Roles Required</h3>
+<div class="tbl-wrap fade-in"><table>
+<thead><tr><th>Role</th><th>Resource</th><th>Purpose</th></tr></thead>
+<tbody>
+<tr><td>Azure AI User</td><td>Foundry project</td><td>Create and run agents</td></tr>
+<tr><td>Search Index Data Reader</td><td>Azure AI Search</td><td>Read search indexes</td></tr>
+<tr><td>Search Index Data Contributor</td><td>Azure AI Search</td><td>Write to indexes</td></tr>
+<tr><td>Cosmos DB Contributor</td><td>Cosmos DB account</td><td>Read/write conversation history</td></tr>
+<tr><td>Cognitive Services OpenAI User</td><td>Azure OpenAI</td><td>Call model endpoints</td></tr>
+</tbody></table></div>
+
+<h3 class="fade-in" style="color:var(--dark);margin:24px 0 12px">SharePoint Admin Settings</h3>
+<div class="C p fade-in">
+<ul><li>Ensure SharePoint content is indexed by Microsoft Search</li><li>Enable semantic indexing for M365 Copilot (if using Copilot Retrieval API)</li><li>Foundry project and SharePoint tenant must be in the <strong>same Microsoft Entra tenant</strong></li></ul>
+<p style="margin-top:10px"><strong>Supported formats:</strong> PDF, DOCX, PPTX, XLSX, TXT, HTML, Markdown, SharePoint pages, lists, document libraries</p>
+</div>
+</div></section>
+<section class="sec alt" id="blocks"><div class="wrap">
+<div class="sec-hd fade-in"><div class="bar"></div><span class="material-icons-outlined">widgets</span><h2>Key Microsoft Building Blocks</h2></div>
+<div class="grid23">
+<div class="C a fade-in"><h3><span class="material-icons-outlined">smart_toy</span> 1. Foundry Agent Service</h3>
+<ul><li>Fully managed agent runtime</li><li>Python, C#, JavaScript, Java SDKs</li><li>Built-in tool orchestration</li><li>Publishes to M365 Copilot and Teams</li></ul>
+<p style="margin-top:8px"><a href="https://learn.microsoft.com/en-us/azure/foundry/agents/" target="_blank">Documentation</a></p></div>
+
+<div class="C a fade-in"><h3><span class="material-icons-outlined">psychology</span> 2. Foundry IQ (Knowledge Layer)</h3>
+<ul><li>Multi-source knowledge base</li><li>Automated chunking, vector embedding</li><li>Agentic retrieval engine</li><li>Citations + ACL enforcement</li></ul>
+<p style="margin-top:8px"><span class="badge badge-warn">Preview</span> <a href="https://learn.microsoft.com/en-us/azure/foundry/agents/concepts/what-is-foundry-iq" target="_blank">Documentation</a></p></div>
+
+<div class="C a fade-in"><h3><span class="material-icons-outlined">search</span> 3. Azure AI Search</h3>
+<ul><li>Keyword, vector, and hybrid search</li><li>Document-level security (ACL sync)</li><li>Free tier for proof-of-concept</li><li>Powers indexing behind Foundry IQ</li></ul>
+<p style="margin-top:8px"><a href="https://learn.microsoft.com/en-us/azure/search/" target="_blank">Documentation</a></p></div>
+
+<div class="C p fade-in"><h3><span class="material-icons-outlined">auto_fix_high</span> 4. AI in SharePoint</h3>
+<ul><li>Auto-tags, classifies content</li><li>Detects stale/broken pages</li><li>Makes SP content AI-ready</li><li>Requires M365 Copilot license</li></ul>
+<p style="margin-top:8px"><span class="badge badge-warn">Preview</span> <a href="https://learn.microsoft.com/en-us/sharepoint/ai-in-sharepoint-get-started" target="_blank">Documentation</a></p></div>
+
+<div class="C p fade-in"><h3><span class="material-icons-outlined">hub</span> 5. Bot Service &amp; M365 Agents SDK</h3>
+<ul><li>Azure Bot Service -- multi-channel bridge</li><li>M365 Agents SDK -- successor to BFv4</li><li>Teams SDK (Teams AI Library)</li><li>BFv4 archived Dec 31, 2025</li></ul>
+<p style="margin-top:8px"><a href="https://learn.microsoft.com/en-us/azure/foundry/agents/how-to/publish-copilot" target="_blank">Documentation</a></p></div>
+
+<div class="C p fade-in"><h3><span class="material-icons-outlined">storage</span> 6. Azure Cosmos DB</h3>
+<ul><li>NoSQL for chat history &amp; agent memory</li><li>Vector search over past conversations</li><li>TTL for short-term vs long-term memory</li><li>Integrates with Semantic Kernel, LangChain</li></ul>
+<p style="margin-top:8px"><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/gen-ai/agentic-memories" target="_blank">Documentation</a></p></div>
+</div>
+</div></section>
+<section class="sec" id="tree"><div class="wrap">
+<div class="sec-hd fade-in"><div class="bar"></div><span class="material-icons-outlined">account_tree</span><h2>Decision Tree: Which Option Is Right for You?</h2></div>
+<div class="svg-wrap fade-in">
+<svg role="img" aria-label="Decision Tree: Which architecture option is right for you" viewBox="0 0 900 520" xmlns="http://www.w3.org/2000/svg" style="max-width:900px">
+<defs>
+<marker id="ah" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#064dd9"/></marker>
+<marker id="ahg" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#318500"/></marker>
+<marker id="ahr" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#e71313"/></marker>
+</defs>
+<rect x="340" y="10" width="220" height="40" rx="8" fill="#01233f"/><text x="450" y="35" text-anchor="middle" fill="#fff" font-size="13" font-weight="bold" font-family="Open Sans">Need a SharePoint Q&amp;A Agent?</text>
+<line x1="450" y1="50" x2="450" y2="80" stroke="#064dd9" stroke-width="2" marker-end="url(#ah)"/>
+<polygon points="450,80 560,125 450,170 340,125" fill="#064dd9" stroke="#01233f" stroke-width="1.5"/>
+<text x="450" y="120" text-anchor="middle" fill="#fff" font-size="11" font-family="Open Sans">Users have M365</text>
+<text x="450" y="133" text-anchor="middle" fill="#fff" font-size="11" font-family="Open Sans">Copilot licenses?</text>
+<line x1="560" y1="125" x2="640" y2="125" stroke="#318500" stroke-width="2" marker-end="url(#ahg)"/>
+<text x="595" y="118" fill="#318500" font-size="10" font-weight="bold">YES</text>
+<polygon points="730,80 820,125 730,170 640,125" fill="#2962ff" stroke="#01233f" stroke-width="1.5"/>
+<text x="730" y="120" text-anchor="middle" fill="#fff" font-size="11" font-family="Open Sans">Heavy</text>
+<text x="730" y="133" text-anchor="middle" fill="#fff" font-size="11" font-family="Open Sans">customization?</text>
+<line x1="820" y1="125" x2="870" y2="125" stroke="#e71313" stroke-width="2"/><line x1="870" y1="125" x2="870" y2="85" stroke="#e71313" stroke-width="2" marker-end="url(#ahr)"/>
+<rect x="820" y="45" width="100" height="36" rx="6" fill="#cddc3a"/><text x="870" y="63" text-anchor="middle" fill="#01233f" font-size="10" font-weight="bold">Option C</text><text x="870" y="75" text-anchor="middle" fill="#01233f" font-size="9">Zero-Code</text>
+<text x="848" y="118" fill="#e71313" font-size="10" font-weight="bold">NO</text>
+<line x1="730" y1="170" x2="730" y2="200" stroke="#318500" stroke-width="2" marker-end="url(#ahg)"/>
+<rect x="680" y="200" width="100" height="36" rx="6" fill="#cddc3a"/><text x="730" y="218" text-anchor="middle" fill="#01233f" font-size="10" font-weight="bold">Option A</text><text x="730" y="230" text-anchor="middle" fill="#01233f" font-size="9">Foundry+IQ</text>
+<text x="740" y="190" fill="#318500" font-size="10" font-weight="bold">YES</text>
+<line x1="450" y1="170" x2="450" y2="210" stroke="#e71313" stroke-width="2" marker-end="url(#ahr)"/>
+<text x="460" y="195" fill="#e71313" font-size="10" font-weight="bold">NO</text>
+<polygon points="450,210 560,255 450,300 340,255" fill="#064dd9" stroke="#01233f" stroke-width="1.5"/>
+<text x="450" y="250" text-anchor="middle" fill="#fff" font-size="11" font-family="Open Sans">Developers</text>
+<text x="450" y="263" text-anchor="middle" fill="#fff" font-size="11" font-family="Open Sans">available?</text>
+<line x1="340" y1="255" x2="240" y2="255" stroke="#e71313" stroke-width="2" marker-end="url(#ahr)"/>
+<text x="295" y="248" fill="#e71313" font-size="10" font-weight="bold">NO</text>
+<rect x="140" y="237" width="100" height="36" rx="6" fill="#cddc3a"/><text x="190" y="255" text-anchor="middle" fill="#01233f" font-size="10" font-weight="bold">Option B</text><text x="190" y="267" text-anchor="middle" fill="#01233f" font-size="9">Copilot Studio</text>
+<line x1="450" y1="300" x2="450" y2="340" stroke="#318500" stroke-width="2" marker-end="url(#ahg)"/>
+<text x="460" y="325" fill="#318500" font-size="10" font-weight="bold">YES</text>
+<polygon points="450,340 560,385 450,430 340,385" fill="#2962ff" stroke="#01233f" stroke-width="1.5"/>
+<text x="450" y="380" text-anchor="middle" fill="#fff" font-size="11" font-family="Open Sans">Need custom</text>
+<text x="450" y="393" text-anchor="middle" fill="#fff" font-size="11" font-family="Open Sans">web app?</text>
+<line x1="340" y1="385" x2="240" y2="385" stroke="#e71313" stroke-width="2" marker-end="url(#ahr)"/>
+<text x="295" y="378" fill="#e71313" font-size="10" font-weight="bold">NO</text>
+<rect x="140" y="367" width="100" height="36" rx="6" fill="#cddc3a"/><text x="190" y="385" text-anchor="middle" fill="#01233f" font-size="10" font-weight="bold">Option A</text><text x="190" y="397" text-anchor="middle" fill="#01233f" font-size="9">Foundry+IQ</text>
+<line x1="450" y1="430" x2="450" y2="455" stroke="#318500" stroke-width="2" marker-end="url(#ahg)"/>
+<text x="460" y="448" fill="#318500" font-size="10" font-weight="bold">YES</text>
+<polygon points="450,455 540,485 450,515 360,485" fill="#064dd9" stroke="#01233f" stroke-width="1.5"/>
+<text x="450" y="490" text-anchor="middle" fill="#fff" font-size="10" font-family="Open Sans">Multi-cloud?</text>
+<line x1="540" y1="485" x2="620" y2="485" stroke="#318500" stroke-width="2" marker-end="url(#ahg)"/>
+<text x="575" y="478" fill="#318500" font-size="10" font-weight="bold">YES</text>
+<rect x="620" y="467" width="100" height="36" rx="6" fill="#cddc3a"/><text x="670" y="485" text-anchor="middle" fill="#01233f" font-size="10" font-weight="bold">Option D</text><text x="670" y="497" text-anchor="middle" fill="#01233f" font-size="9">Custom RAG</text>
+<line x1="360" y1="485" x2="280" y2="485" stroke="#e71313" stroke-width="2" marker-end="url(#ahr)"/>
+<text x="325" y="478" fill="#e71313" font-size="10" font-weight="bold">NO</text>
+<rect x="180" y="467" width="100" height="36" rx="6" fill="#cddc3a"/><text x="230" y="485" text-anchor="middle" fill="#01233f" font-size="10" font-weight="bold">Option E</text><text x="230" y="497" text-anchor="middle" fill="#01233f" font-size="9">Hybrid</text>
+</svg>
+</div>
+<div class="note fade-in"><strong>Important distinction:</strong> Foundry IQ (indexed knowledge base via Azure AI Search) and the SharePoint tool (live queries via Copilot Retrieval API) are <strong>different mechanisms</strong>.</div>
+</div></section>
+<section class="sec alt" id="options"><div class="wrap">
+<div class="sec-hd fade-in"><div class="bar"></div><span class="material-icons-outlined">architecture</span><h2>Architecture Options</h2></div>
+
+<div class="tabs fade-in">
+<div class="tab-nav">
+<button class="tab-btn active" data-tab="optA">Option A - Foundry+IQ</button>
+<button class="tab-btn" data-tab="optB">Option B - Copilot Studio</button>
+<button class="tab-btn" data-tab="optC">Option C - Declarative Agent</button>
+<button class="tab-btn" data-tab="optD">Option D - Custom RAG</button>
+<button class="tab-btn" data-tab="optE">Option E - Hybrid</button>
+</div>
+
+<!-- OPTION A -->
+<div class="tab-panel active" id="optA">
+<h3>Option A -- Foundry Agent + Foundry IQ + Teams <span class="badge badge-green">Recommended Start</span></h3>
+<div class="svg-wrap">
+<svg role="img" aria-label="Option A Architecture: Foundry Agent + Foundry IQ + Teams" viewBox="0 0 800 480" xmlns="http://www.w3.org/2000/svg" style="max-width:800px">
+<defs><marker id="a1" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#064dd9"/></marker></defs>
+<!-- Top: Teams + Web App -->
+<rect x="120" y="10" width="200" height="54" rx="8" fill="#01233f"/><text x="220" y="33" text-anchor="middle" fill="#fff" font-size="12" font-weight="bold">Microsoft Teams</text><text x="220" y="50" text-anchor="middle" fill="#cddc3a" font-size="9">(M365 Agents SDK)</text>
+<rect x="480" y="10" width="200" height="54" rx="8" fill="#01233f"/><text x="580" y="33" text-anchor="middle" fill="#fff" font-size="12" font-weight="bold">Custom Web App</text><text x="580" y="50" text-anchor="middle" fill="#cddc3a" font-size="9">(React / Blazor)</text>
+<!-- Arrows down -->
+<line x1="220" y1="64" x2="220" y2="82" stroke="#064dd9" stroke-width="2" marker-end="url(#a1)"/>
+<line x1="580" y1="64" x2="580" y2="82" stroke="#064dd9" stroke-width="2" marker-end="url(#a1)"/>
+<!-- Bot Service -->
+<rect x="120" y="86" width="560" height="44" rx="8" fill="#2962ff"/><text x="400" y="113" text-anchor="middle" fill="#fff" font-size="12" font-weight="bold">Azure Bot Service (Channel Routing &amp; Identity)</text>
+<line x1="400" y1="130" x2="400" y2="158" stroke="#064dd9" stroke-width="2" marker-end="url(#a1)"/>
+<!-- Foundry Agent -->
+<rect x="140" y="162" width="520" height="70" rx="8" fill="#064dd9"/>
+<text x="400" y="185" text-anchor="middle" fill="#fff" font-size="13" font-weight="bold">Foundry Agent Service</text>
+<text x="400" y="202" text-anchor="middle" fill="rgba(255,255,255,.8)" font-size="10">System Prompt + Tool Orchestration</text>
+<text x="400" y="218" text-anchor="middle" fill="rgba(255,255,255,.7)" font-size="9">knowledge_base_retrieve (MCP) | Custom functions</text>
+<!-- Three branches down -->
+<line x1="250" y1="232" x2="250" y2="270" stroke="#064dd9" stroke-width="2" marker-end="url(#a1)"/>
+<line x1="400" y1="232" x2="400" y2="270" stroke="#064dd9" stroke-width="2" marker-end="url(#a1)"/>
+<line x1="550" y1="232" x2="550" y2="270" stroke="#064dd9" stroke-width="2" marker-end="url(#a1)"/>
+<!-- Three boxes -->
+<rect x="170" y="274" width="160" height="50" rx="8" fill="#cddc3a"/><text x="250" y="296" text-anchor="middle" fill="#01233f" font-size="11" font-weight="bold">Foundry IQ</text><text x="250" y="312" text-anchor="middle" fill="#01233f" font-size="9">Knowledge Base</text>
+<rect x="330" y="274" width="140" height="50" rx="8" fill="#73c4ef"/><text x="400" y="296" text-anchor="middle" fill="#01233f" font-size="11" font-weight="bold">Cosmos DB</text><text x="400" y="312" text-anchor="middle" fill="#01233f" font-size="9">(optional history)</text>
+<rect x="490" y="274" width="140" height="50" rx="8" fill="#01233f"/><text x="560" y="296" text-anchor="middle" fill="#fff" font-size="11" font-weight="bold">Azure OpenAI</text><text x="560" y="312" text-anchor="middle" fill="rgba(255,255,255,.7)" font-size="9">GPT-4o</text>
+<!-- Arrow from IQ to Search -->
+<line x1="250" y1="324" x2="250" y2="358" stroke="#064dd9" stroke-width="2" marker-end="url(#a1)"/>
+<!-- AI Search block -->
+<rect x="80" y="362" width="640" height="100" rx="8" fill="#eff1f4" stroke="#d3d8de" stroke-width="1"/>
+<text x="400" y="385" text-anchor="middle" fill="#064dd9" font-size="12" font-weight="bold">Azure AI Search</text>
+<rect x="120" y="395" width="140" height="36" rx="6" fill="#064dd9"/><text x="190" y="418" text-anchor="middle" fill="#fff" font-size="10">SharePoint Sites/Docs</text>
+<rect x="290" y="395" width="140" height="36" rx="6" fill="#2962ff"/><text x="360" y="418" text-anchor="middle" fill="#fff" font-size="10">Azure Blob Storage</text>
+<rect x="460" y="395" width="140" height="36" rx="6" fill="#003da5"/><text x="530" y="418" text-anchor="middle" fill="#fff" font-size="10">OneLake (optional)</text>
+</svg>
+</div>
+
+<h4>Why Recommended as Starting Point</h4>
+<ul style="margin-left:18px;font-size:.9rem">
+<li style="color:#318500"><span style="color:var(--tx)">(+) Foundry IQ handles chunking, embedding, indexing, and retrieval</span></li>
+<li style="color:#318500"><span style="color:var(--tx)">(+) SharePoint ACL enforcement via indexed ACLs or identity passthrough</span></li>
+<li style="color:#318500"><span style="color:var(--tx)">(+) Publish to Teams via Foundry portal</span></li>
+<li style="color:#318500"><span style="color:var(--tx)">(+) Can also serve a web app via Bot Service Direct Line</span></li>
+<li style="color:#318500"><span style="color:var(--tx)">(+) Pay-as-you-go, no platform fee</span></li>
+<li style="color:#318500"><span style="color:var(--tx)">(+) Built-in thread/conversation management</span></li>
+</ul>
+<div class="warn-box" style="margin-top:14px"><strong>Caveats (April 2026):</strong> Published agents do NOT support citations in Teams. The SharePoint tool does NOT work in Teams-published agents; use Foundry IQ indexed sources instead. Foundry Agent Service does not support per-request MCP headers; for per-user auth, consider Azure OpenAI Responses API.</div>
+
+<h4>Key Components</h4>
+<div class="tbl-wrap"><table>
+<thead><tr><th>Component</th><th>Purpose</th></tr></thead>
+<tbody>
+<tr><td>Foundry Agent Service</td><td>Agent runtime &amp; orchestration</td></tr>
+<tr><td>Foundry IQ Knowledge Base</td><td>Multi-source indexed retrieval over SharePoint</td></tr>
+<tr><td>Azure AI Search</td><td>Index storage, hybrid search, ACL enforcement</td></tr>
+<tr><td>Azure OpenAI (GPT-4o)</td><td>LLM for response generation</td></tr>
+<tr><td>Azure Bot Service</td><td>Channel bridge (Teams + Web)</td></tr>
+<tr><td>M365 Agents SDK</td><td>Teams-native bot framework</td></tr>
+<tr><td>Cosmos DB (optional)</td><td>Persistent history &amp; Q&amp;A analytics</td></tr>
+<tr><td>Entra ID</td><td>Authentication &amp; identity passthrough</td></tr>
+</tbody></table></div>
+</div>
+<!-- OPTION B -->
+<div class="tab-panel" id="optB">
+<h3>Option B -- Copilot Studio (Low-Code)</h3>
+<div class="svg-wrap">
+<svg role="img" aria-label="Option B Architecture: Copilot Studio low-code solution" viewBox="0 0 700 280" xmlns="http://www.w3.org/2000/svg" style="max-width:700px">
+<defs><marker id="a2" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#064dd9"/></marker></defs>
+<rect x="100" y="10" width="180" height="44" rx="8" fill="#01233f"/><text x="190" y="37" text-anchor="middle" fill="#fff" font-size="12" font-weight="bold">Microsoft Teams</text>
+<rect x="420" y="10" width="180" height="44" rx="8" fill="#01233f"/><text x="510" y="37" text-anchor="middle" fill="#fff" font-size="12" font-weight="bold">Web Widget</text>
+<line x1="190" y1="54" x2="190" y2="82" stroke="#064dd9" stroke-width="2" marker-end="url(#a2)"/>
+<line x1="510" y1="54" x2="510" y2="82" stroke="#064dd9" stroke-width="2" marker-end="url(#a2)"/>
+<rect x="80" y="86" width="540" height="90" rx="8" fill="#064dd9"/>
+<text x="350" y="115" text-anchor="middle" fill="#fff" font-size="14" font-weight="bold">Copilot Studio</text>
+<text x="350" y="137" text-anchor="middle" fill="rgba(255,255,255,.8)" font-size="10">Generative Answers (SharePoint Grounding)</text>
+<text x="350" y="155" text-anchor="middle" fill="rgba(255,255,255,.7)" font-size="10">Custom Topics | Triggers | Power Automate</text>
+<line x1="350" y1="176" x2="350" y2="210" stroke="#064dd9" stroke-width="2" marker-end="url(#a2)"/>
+<rect x="200" y="214" width="300" height="44" rx="8" fill="#cddc3a"/><text x="350" y="240" text-anchor="middle" fill="#01233f" font-size="12" font-weight="bold">SharePoint Content</text>
+</svg>
+</div>
+<h4>Pros</h4>
+<ul style="margin-left:18px;font-size:.9rem"><li>(+) No code required -- drag-and-drop</li><li>(+) Native SharePoint grounding with generative answers</li><li>(+) Built-in Teams and web widget deployment</li><li>(+) ~$200/month per tenant</li><li>(+) Built-in conversation analytics</li></ul>
+<h4>Cons</h4>
+<ul style="margin-left:18px;font-size:.9rem"><li>(-) Limited customization</li><li>(-) Less control over RAG pipeline and prompts</li><li>(-) Cannot build complex multi-agent workflows</li><li>(-) Dependent on Copilot Studio roadmap</li></ul>
+<p style="margin-top:12px"><strong>Best for:</strong> Non-technical teams, departmental Q&amp;A bots, rapid prototyping</p>
+</div>
+
+<!-- OPTION C -->
+<div class="tab-panel" id="optC">
+<h3>Option C -- M365 Copilot Declarative Agent (Zero-Code)</h3>
+<div class="svg-wrap">
+<svg role="img" aria-label="Option C Architecture: M365 Copilot Declarative Agent" viewBox="0 0 700 240" xmlns="http://www.w3.org/2000/svg" style="max-width:700px">
+<rect x="100" y="10" width="500" height="110" rx="8" fill="#064dd9"/>
+<text x="350" y="40" text-anchor="middle" fill="#fff" font-size="14" font-weight="bold">Microsoft 365 Copilot</text>
+<rect x="150" y="55" width="400" height="50" rx="6" fill="#2962ff"/>
+<text x="350" y="77" text-anchor="middle" fill="#fff" font-size="11" font-weight="bold">Declarative Agent (JSON Manifest)</text>
+<text x="350" y="95" text-anchor="middle" fill="rgba(255,255,255,.8)" font-size="10">SharePoint Knowledge Source | Graph Connectors</text>
+<text x="350" y="135" text-anchor="middle" fill="#6b6b6b" font-size="10">Available in: Teams | Outlook | Copilot</text>
+<rect x="150" y="160" width="120" height="36" rx="6" fill="#01233f"/><text x="210" y="183" text-anchor="middle" fill="#fff" font-size="10">Teams</text>
+<rect x="290" y="160" width="120" height="36" rx="6" fill="#01233f"/><text x="350" y="183" text-anchor="middle" fill="#fff" font-size="10">Outlook</text>
+<rect x="430" y="160" width="120" height="36" rx="6" fill="#01233f"/><text x="490" y="183" text-anchor="middle" fill="#fff" font-size="10">M365 Copilot</text>
+</svg>
+</div>
+<h4>Pros</h4>
+<ul style="margin-left:18px;font-size:.9rem"><li>(+) Zero custom code -- JSON manifest only</li><li>(+) Native permission enforcement</li><li>(+) Available across Teams, Outlook, M365 Copilot</li><li>(+) No Azure infrastructure to manage</li></ul>
+<h4>Cons</h4>
+<ul style="margin-left:18px;font-size:.9rem"><li>(-) Requires M365 Copilot license for ALL users (~$30/user/month)</li><li>(-) Least customizable option</li><li>(-) Cannot add custom backends, analytics, or caching</li><li>(-) Not interoperable with Foundry IQ knowledge sources</li></ul>
+<p style="margin-top:12px"><strong>Best for:</strong> Organizations already licensing M365 Copilot for all users</p>
+</div>
+
+<!-- OPTION D -->
+<div class="tab-panel" id="optD">
+<h3>Option D -- Custom Web App with RAG Pipeline</h3>
+<div class="svg-wrap">
+<svg role="img" aria-label="Option D Architecture: Custom Web App with RAG Pipeline" viewBox="0 0 700 380" xmlns="http://www.w3.org/2000/svg" style="max-width:700px">
+<defs><marker id="a3" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#064dd9"/></marker></defs>
+<rect x="200" y="10" width="300" height="50" rx="8" fill="#01233f"/><text x="350" y="37" text-anchor="middle" fill="#fff" font-size="12" font-weight="bold">Custom Web App (React/Blazor)</text><text x="350" y="52" text-anchor="middle" fill="rgba(255,255,255,.7)" font-size="9">Chat UI + History Panel</text>
+<line x1="350" y1="60" x2="350" y2="88" stroke="#064dd9" stroke-width="2" marker-end="url(#a3)"/>
+<rect x="140" y="92" width="420" height="80" rx="8" fill="#064dd9"/>
+<text x="350" y="118" text-anchor="middle" fill="#fff" font-size="12" font-weight="bold">Backend API (FastAPI / .NET / Node)</text>
+<text x="350" y="140" text-anchor="middle" fill="rgba(255,255,255,.8)" font-size="10">Query &gt; Retrieve &gt; Generate Pipeline</text>
+<text x="350" y="158" text-anchor="middle" fill="rgba(255,255,255,.7)" font-size="9">History Management | Citation Tracking</text>
+<line x1="250" y1="172" x2="250" y2="210" stroke="#064dd9" stroke-width="2" marker-end="url(#a3)"/>
+<line x1="480" y1="172" x2="480" y2="210" stroke="#064dd9" stroke-width="2" marker-end="url(#a3)"/>
+<rect x="160" y="214" width="180" height="50" rx="8" fill="#cddc3a"/><text x="250" y="237" text-anchor="middle" fill="#01233f" font-size="11" font-weight="bold">Azure AI Search</text><text x="250" y="253" text-anchor="middle" fill="#01233f" font-size="9">(SharePoint indexed)</text>
+<rect x="390" y="214" width="180" height="50" rx="8" fill="#01233f"/><text x="480" y="237" text-anchor="middle" fill="#fff" font-size="11" font-weight="bold">Azure OpenAI</text><text x="480" y="253" text-anchor="middle" fill="rgba(255,255,255,.7)" font-size="9">+ Cosmos DB</text>
+</svg>
+</div>
+<h4>Pros</h4>
+<ul style="margin-left:18px;font-size:.9rem"><li>(+) Full control over UI/UX and agent behavior</li><li>(+) Build Q&amp;A caching and analytics</li><li>(+) No M365 Copilot license required</li><li>(+) Suitable for external-facing scenarios</li><li>(+) Multi-cloud portability with Semantic Kernel</li></ul>
+<h4>Cons</h4>
+<ul style="margin-left:18px;font-size:.9rem"><li>(-) Must build and maintain RAG pipeline</li><li>(-) Must implement SharePoint ACL enforcement manually</li><li>(-) Higher development and maintenance cost</li><li>(-) No out-of-box Teams integration</li></ul>
+<p style="margin-top:12px"><strong>Alternative orchestrators:</strong> Semantic Kernel (open-source, runs anywhere) or LangChain can replace Foundry Agent Service for teams wanting cloud portability.</p>
+<p style="margin-top:8px"><strong>Best for:</strong> Teams needing full control or multi-cloud portability</p>
+</div>
+
+<!-- OPTION E -->
+<div class="tab-panel" id="optE">
+<h3>Option E -- Hybrid: Foundry Backend + Custom Web Frontend</h3>
+<div class="svg-wrap">
+<svg role="img" aria-label="Option E Architecture: Hybrid Foundry Backend with Custom Frontend" viewBox="0 0 800 420" xmlns="http://www.w3.org/2000/svg" style="max-width:800px">
+<defs><marker id="a4" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#064dd9"/></marker></defs>
+<rect x="80" y="10" width="240" height="54" rx="8" fill="#01233f"/><text x="200" y="33" text-anchor="middle" fill="#fff" font-size="12" font-weight="bold">Custom Web App</text><text x="200" y="50" text-anchor="middle" fill="#cddc3a" font-size="9">(Full-featured UI)</text>
+<rect x="480" y="10" width="240" height="54" rx="8" fill="#01233f"/><text x="600" y="33" text-anchor="middle" fill="#fff" font-size="12" font-weight="bold">Microsoft Teams</text><text x="600" y="50" text-anchor="middle" fill="#cddc3a" font-size="9">(via Bot Service)</text>
+<line x1="200" y1="64" x2="200" y2="82" stroke="#064dd9" stroke-width="2" marker-end="url(#a4)"/>
+<line x1="600" y1="64" x2="600" y2="82" stroke="#064dd9" stroke-width="2" marker-end="url(#a4)"/>
+<rect x="80" y="86" width="640" height="90" rx="8" fill="#064dd9"/>
+<text x="400" y="112" text-anchor="middle" fill="#fff" font-size="13" font-weight="bold">Azure Container Apps / App Service</text>
+<text x="400" y="132" text-anchor="middle" fill="rgba(255,255,255,.8)" font-size="10">Custom Backend (Python/C#)</text>
+<text x="400" y="152" text-anchor="middle" fill="rgba(255,255,255,.7)" font-size="9">Foundry Agent SDK client | History Mgmt | Q&amp;A Caching | Web API</text>
+<line x1="250" y1="176" x2="250" y2="210" stroke="#064dd9" stroke-width="2" marker-end="url(#a4)"/>
+<line x1="400" y1="176" x2="400" y2="210" stroke="#064dd9" stroke-width="2" marker-end="url(#a4)"/>
+<line x1="550" y1="176" x2="550" y2="210" stroke="#064dd9" stroke-width="2" marker-end="url(#a4)"/>
+<rect x="160" y="214" width="180" height="50" rx="8" fill="#cddc3a"/><text x="250" y="237" text-anchor="middle" fill="#01233f" font-size="11" font-weight="bold">Foundry Agent +</text><text x="250" y="253" text-anchor="middle" fill="#01233f" font-size="9">Foundry IQ</text>
+<rect x="320" y="214" width="160" height="50" rx="8" fill="#73c4ef"/><text x="400" y="237" text-anchor="middle" fill="#01233f" font-size="11" font-weight="bold">Cosmos DB</text><text x="400" y="253" text-anchor="middle" fill="#01233f" font-size="9">(History + Q&amp;A KB)</text>
+<rect x="500" y="214" width="160" height="50" rx="8" fill="#01233f"/><text x="580" y="237" text-anchor="middle" fill="#fff" font-size="11" font-weight="bold">Azure OpenAI</text>
+</svg>
+</div>
+<h4>Why Consider This</h4>
+<ul style="margin-left:18px;font-size:.9rem"><li>(+) Best of both worlds -- Foundry IQ handles SP retrieval, custom backend adds features</li><li>(+) Full control over the web experience</li><li>(+) Q&amp;A caching: store Q&amp;A pairs, surface popular questions</li><li>(+) Teams AND rich web app simultaneously</li><li>(+) Full conversation history customization</li></ul>
+<div class="err-box" style="margin-top:12px"><strong>Important:</strong> Only pursue this when Option A has been validated with real users and feedback shows need for custom UI or analytics. Do NOT start here.</div>
+<p style="margin-top:12px;font-size:.9rem"><strong>Hosting choices:</strong> Azure Functions (event-driven, lowest cost) | App Service (always-on, built-in auth) | Container Apps (multi-service orchestration)</p>
+</div>
+
+</div><!-- end tabs -->
+</div></section>
+<section class="sec" id="matrix"><div class="wrap">
+<div class="sec-hd fade-in"><div class="bar"></div><span class="material-icons-outlined">grid_on</span><h2>Comparison Matrix</h2></div>
+<div class="tbl-wrap fade-in" style="max-width:100%">
+<table style="min-width:900px">
+<thead><tr><th>Criteria</th><th>Option A (Foundry+IQ)</th><th>Option B (Copilot Studio)</th><th>Option C (Declarative)</th><th>Option D (Custom RAG)</th><th>Option E (Hybrid)</th></tr></thead>
+<tbody>
+<tr><td>Development effort</td><td>Low</td><td>Very Low</td><td>Minimal</td><td>High</td><td>Medium</td></tr>
+<tr><td>Maintenance burden</td><td>Low</td><td>Very Low</td><td>Minimal</td><td>High</td><td>Medium</td></tr>
+<tr><td>SharePoint ACL enforcement</td><td>Via indexed ACLs</td><td>Built-in</td><td>Built-in</td><td>Manual</td><td>Via indexed ACLs</td></tr>
+<tr><td>Citation support</td><td>Playground only (not in Teams)</td><td>Built-in</td><td>Built-in</td><td>Custom</td><td>Custom</td></tr>
+<tr><td>Teams integration</td><td>Via publish (with caveats)</td><td>Native</td><td>Native</td><td>Custom</td><td>Both</td></tr>
+<tr><td>Custom web app</td><td>Via Direct Line</td><td>Web widget only</td><td>No</td><td>Full control</td><td>Full control</td></tr>
+<tr><td>Conversation history</td><td>Built-in threads (basic)</td><td>Built-in</td><td>Via Copilot</td><td>Full control</td><td>Full control</td></tr>
+<tr><td>Q&amp;A caching &amp; analytics</td><td>Limited</td><td>Built-in analytics</td><td>Limited</td><td>Full control</td><td>Full control</td></tr>
+<tr><td>Multi-source support</td><td>Built-in (SP, Blob, OneLake)</td><td>SharePoint + Dataverse</td><td>M365 data</td><td>Custom</td><td>Built-in</td></tr>
+<tr><td>Licensing</td><td>Azure pay-as-you-go (+ Copilot for remote SP)</td><td>~$200/mo tenant</td><td>M365 Copilot (~$30/user/mo)</td><td>Graph API only</td><td>Azure pay-as-you-go (+ Copilot for remote SP)</td></tr>
+<tr><td>Time to PoC</td><td>1-2 weeks</td><td>Days</td><td>Hours</td><td>Months</td><td>3-6 weeks</td></tr>
+<tr><td>Time to production</td><td>4-8 weeks</td><td>2-4 weeks</td><td>1-2 weeks</td><td>3-6 months</td><td>2-4 months</td></tr>
+<tr><td>Team skills needed</td><td>Azure + Python/C#</td><td>Low-code (Power Platform)</td><td>JSON config only</td><td>Full-stack + Azure + AI</td><td>Full-stack + Azure + AI</td></tr>
+<tr><td>Complexity</td><td>Low-Medium</td><td>Low</td><td>Very Low</td><td>High</td><td>Medium-High</td></tr>
+<tr><td>Risk level</td><td>Low (Preview caveats)</td><td>Low</td><td>Low</td><td>Medium (custom maintenance)</td><td>Medium (more moving parts)</td></tr>
+<tr><td>Cloud portability</td><td>Azure only</td><td>Microsoft only</td><td>Microsoft only</td><td>Any (Semantic Kernel)</td><td>Azure only</td></tr>
+</tbody></table></div>
+</div></section>
+<section class="sec alt" id="iq-vs-sp"><div class="wrap">
+<div class="sec-hd fade-in"><div class="bar"></div><span class="material-icons-outlined">compare_arrows</span><h2>Deep Dive: Foundry IQ vs SharePoint Tool</h2></div>
+<div class="err-box fade-in"><strong>Critical:</strong> These are <strong>two different mechanisms</strong> for accessing SharePoint from Foundry agents. Choosing the wrong one leads to broken architectures.</div>
+<div class="grid2 fade-in">
+<div class="C a">
+<h3><span class="material-icons-outlined">psychology</span> Foundry IQ (Indexed)</h3>
+<ul>
+<li>Uses Azure AI Search to crawl, chunk, embed, and index SP content</li>
+<li>Hybrid search (keyword + vector)</li>
+<li>ACLs synced via index metadata</li>
+<li>Pre-indexed -- fast but with indexing lag</li>
+<li><strong>Works with Teams-published agents</strong></li>
+<li>Exposes <code>knowledge_base_retrieve</code> MCP tool</li>
+</ul>
+</div>
+<div class="C w">
+<h3><span class="material-icons-outlined">bolt</span> SharePoint Tool (Live)</h3>
+<ul>
+<li>Queries SP in real-time via Copilot Retrieval API</li>
+<li>No pre-indexing -- always latest content</li>
+<li>Permissions enforced natively by SP (OBO)</li>
+<li>Requires M365 Copilot license or $0.10/call</li>
+<li><strong>Does NOT work in Teams-published agents</strong></li>
+<li>Best for dev/playground scenarios</li>
+</ul>
+</div>
+</div>
+
+<h3 class="fade-in" style="color:var(--dark);margin:24px 0 12px">Which to Use?</h3>
+<div class="tbl-wrap fade-in"><table>
+<thead><tr><th>Scenario</th><th>Use This</th></tr></thead>
+<tbody>
+<tr><td>Agent published to Teams</td><td><strong>Foundry IQ (indexed)</strong> -- SharePoint tool does NOT work</td></tr>
+<tr><td>Need real-time data freshness</td><td><strong>SharePoint tool</strong> -- no indexing lag</td></tr>
+<tr><td>Large-scale retrieval (100K+ docs)</td><td><strong>Foundry IQ</strong> -- pre-indexed for speed</td></tr>
+<tr><td>No M365 Copilot licenses</td><td><strong>Foundry IQ (indexed)</strong> -- only Azure AI Search costs</td></tr>
+<tr><td>Per-user permissions required</td><td>Both support this, different mechanisms</td></tr>
+</tbody></table></div>
+
+<h3 class="fade-in" style="color:var(--dark);margin:24px 0 12px">Related IQ Services</h3>
+<div class="tbl-wrap fade-in"><table>
+<thead><tr><th>IQ Service</th><th>Scope</th><th>Data Sources</th></tr></thead>
+<tbody>
+<tr><td>Foundry IQ</td><td>Enterprise knowledge retrieval</td><td>Azure, SharePoint, OneLake, web</td></tr>
+<tr><td>Fabric IQ</td><td>Business analytics &amp; semantic models</td><td>OneLake, Power BI</td></tr>
+<tr><td>Work IQ</td><td>M365 collaboration signals</td><td>Outlook, Teams, Calendar</td></tr>
+</tbody></table></div>
+</div></section>
+
+<section class="sec" id="ai-sp"><div class="wrap">
+<div class="sec-hd fade-in"><div class="bar"></div><span class="material-icons-outlined">auto_fix_high</span><h2>Deep Dive: AI in SharePoint</h2></div>
+<p class="fade-in" style="margin-bottom:16px">The <strong>AI in SharePoint</strong> feature (previously "SharePoint Knowledge Agent") makes your content <strong>AI-ready</strong>: <span class="badge badge-warn">Preview</span></p>
+<div class="grid2">
+<div class="C p fade-in">
+<h3><span class="material-icons-outlined">label</span> Key Capabilities</h3>
+<ul>
+<li><strong>Auto-tagging</strong> -- classifies documents, extracts metadata (dates, names, contract numbers)</li>
+<li><strong>Content hygiene</strong> -- detects stale pages, broken links, duplicates</li>
+<li><strong>Natural language automation</strong> -- auto-creates workflows from plain English</li>
+<li><strong>Role-based actions</strong> -- adapts suggestions by role</li>
+</ul>
+</div>
+<div class="C r fade-in">
+<h3><span class="material-icons-outlined">tips_and_updates</span> Why It Matters</h3>
+<p>A Foundry IQ + Foundry Agent solution is only as good as the SharePoint content it retrieves. AI in SharePoint ensures:</p>
+<ul>
+<li>Documents properly tagged -> better retrieval relevance</li>
+<li>Stale content flagged -> fewer inaccurate answers</li>
+<li>Metadata consistent -> improved filtering precision</li>
+</ul>
+<p style="margin-top:8px"><strong>Recommendation:</strong> Enable alongside your Foundry solution.</p>
+</div>
+</div>
+</div></section>
+
+<section class="sec alt" id="teams"><div class="wrap">
+<div class="sec-hd fade-in"><div class="bar"></div><span class="material-icons-outlined">groups</span><h2>Deep Dive: Teams &amp; Bot Integration</h2></div>
+<h3 class="fade-in" style="color:var(--dark);margin-bottom:12px">SDK Landscape (2026)</h3>
+<div class="tbl-wrap fade-in"><table>
+<thead><tr><th>SDK</th><th>Best For</th><th>Status</th></tr></thead>
+<tbody>
+<tr><td>Teams SDK (Teams AI Library)</td><td>Teams-only bots and apps</td><td><span class="badge badge-green">Current</span></td></tr>
+<tr><td>M365 Agents SDK</td><td>Multi-channel (Teams, Outlook, Copilot)</td><td><span class="badge badge-green">Current</span></td></tr>
+<tr><td>Foundry Agent SDK</td><td>Advanced multi-agent orchestration</td><td><span class="badge badge-green">Current</span></td></tr>
+<tr><td>Bot Framework v4</td><td>Legacy</td><td><span class="badge badge-red">Archived Dec 2025</span></td></tr>
+<tr><td>Copilot Studio</td><td>Low-code bots and agents</td><td><span class="badge badge-green">Current</span></td></tr>
+</tbody></table></div>
+
+<h3 class="fade-in" style="color:var(--dark);margin:24px 0 12px">Publishing Foundry Agents to Teams</h3>
+<div class="C a fade-in">
+<ol>
+<li>Build agent in Foundry portal or via SDK</li>
+<li>Foundry generates stable endpoint + Managed Identity</li>
+<li>Publish via Foundry UI -> creates Azure Bot Service resource</li>
+<li>Configure Teams app manifest and permissions</li>
+<li>Upload to Teams admin center for approval and distribution</li>
+</ol>
+</div>
+<div class="warn-box fade-in"><strong>Limitation (Preview):</strong> Published agents do not currently support citations, streaming responses, or certain tool types. Test thoroughly before production.</div>
+</div></section>
+<section class="sec" id="history"><div class="wrap">
+<div class="sec-hd fade-in"><div class="bar"></div><span class="material-icons-outlined">forum</span><h2>Conversation History &amp; Q&amp;A Analytics</h2></div>
+<div class="note fade-in"><strong>Clarification:</strong> This section describes Q&amp;A caching and analytics, not machine learning or model fine-tuning. The LLM does not "learn" from past conversations.</div>
+
+<h3 class="fade-in" style="color:var(--dark);margin:20px 0 12px">Built-in vs Custom History</h3>
+<div class="tbl-wrap fade-in"><table>
+<thead><tr><th>Approach</th><th>What It Provides</th><th>When to Use</th></tr></thead>
+<tbody>
+<tr><td>Foundry Agent Service threads</td><td>Built-in conversation threads per session</td><td>Sufficient for basic follow-up within a session</td></tr>
+<tr><td>Cosmos DB (custom)</td><td>Persistent cross-session history, Q&amp;A caching, feedback, analytics</td><td>Need long-term analytics, cross-session context, or dashboards</td></tr>
+</tbody></table></div>
+
+<h3 class="fade-in" style="color:var(--dark);margin:24px 0 12px">Q&amp;A Caching Flow</h3>
+<div class="svg-wrap fade-in">
+<svg role="img" aria-label="Q and A Caching Flow Diagram" viewBox="0 0 800 260" xmlns="http://www.w3.org/2000/svg" style="max-width:800px">
+<defs><marker id="a5" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#064dd9"/></marker>
+<marker id="a5g" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#318500"/></marker></defs>
+<rect x="20" y="40" width="120" height="44" rx="8" fill="#01233f"/><text x="80" y="66" text-anchor="middle" fill="#fff" font-size="11" font-weight="bold">User Question</text>
+<line x1="140" y1="62" x2="190" y2="62" stroke="#064dd9" stroke-width="2" marker-end="url(#a5)"/>
+<polygon points="270,20 340,62 270,104 200,62" fill="#2962ff"/><text x="270" y="58" text-anchor="middle" fill="#fff" font-size="10">Cache</text><text x="270" y="70" text-anchor="middle" fill="#fff" font-size="10">Hit?</text>
+<!-- Hit path -->
+<line x1="340" y1="62" x2="400" y2="62" stroke="#318500" stroke-width="2" marker-end="url(#a5g)"/>
+<text x="365" y="55" fill="#318500" font-size="10" font-weight="bold">HIT</text>
+<rect x="404" y="40" width="140" height="44" rx="8" fill="#cddc3a"/><text x="474" y="66" text-anchor="middle" fill="#01233f" font-size="10" font-weight="bold">Return Cached</text>
+<!-- Miss path -->
+<line x1="270" y1="104" x2="270" y2="140" stroke="#e71313" stroke-width="2" marker-end="url(#a5)"/>
+<text x="280" y="127" fill="#e71313" font-size="10" font-weight="bold">MISS</text>
+<rect x="190" y="144" width="160" height="40" rx="8" fill="#064dd9"/><text x="270" y="168" text-anchor="middle" fill="#fff" font-size="10">Foundry IQ Retrieval</text>
+<line x1="350" y1="164" x2="400" y2="164" stroke="#064dd9" stroke-width="2" marker-end="url(#a5)"/>
+<rect x="404" y="144" width="160" height="40" rx="8" fill="#01233f"/><text x="484" y="168" text-anchor="middle" fill="#fff" font-size="10">Azure OpenAI Generate</text>
+<line x1="484" y1="184" x2="484" y2="210" stroke="#064dd9" stroke-width="2" marker-end="url(#a5)"/>
+<rect x="404" y="214" width="160" height="40" rx="8" fill="#73c4ef"/><text x="484" y="238" text-anchor="middle" fill="#01233f" font-size="10" font-weight="bold">Store Q&amp;A Pair</text>
+<line x1="564" y1="234" x2="620" y2="234" stroke="#064dd9" stroke-width="2" marker-end="url(#a5)"/>
+<rect x="624" y="214" width="140" height="40" rx="8" fill="#cddc3a"/><text x="694" y="238" text-anchor="middle" fill="#01233f" font-size="10" font-weight="bold">Collect Feedback</text>
+</svg>
+</div>
+
+<h3 class="fade-in" style="color:var(--dark);margin:24px 0 12px">Data Model</h3>
+<pre class="fade-in"><code>{
+  "id": "msg-uuid",
+  "conversationId": "conv-abc123",
+  "userId": "user@company.com",
+  "role": "user|assistant|system",
+  "timestamp": "2026-04-09T14:00:00Z",
+  "content": "What is the latest HR policy on hybrid work?",
+  "citations": [
+    { "title": "HR Policy 2026", "url": "https://sp.company.com/...", "snippet": "..." }
+  ],
+  "feedback": { "rating": "thumbs_up", "correction": null },
+  "metadata": { "model": "gpt-4o", "tokens_used": 1250 }
+}</code></pre>
+
+<h3 class="fade-in" style="color:var(--dark);margin:24px 0 12px">Q&amp;A Caching &amp; Analytics Design</h3>
+<div class="C p fade-in">
+<ol>
+<li><strong>Store Q&amp;A pairs</strong> with citations and feedback ratings</li>
+<li><strong>Popular questions surfacing</strong> -- aggregate frequently asked questions</li>
+<li><strong>Feedback integration</strong> -- thumbs up/down drives prompt refinement</li>
+<li><strong>Q&amp;A cache</strong> -- high-confidence cached answers reduce model calls</li>
+<li><strong>Content gap analytics</strong> -- track unanswerable questions</li>
+</ol>
+</div>
+<div class="C a fade-in">
+<h3><span class="material-icons-outlined">dns</span> Partition Strategy</h3>
+<ul>
+<li><strong>Partition key:</strong> <code>userId</code> (per-user) or <code>conversationId</code> (shared bots)</li>
+<li><strong>Indexes:</strong> vector index on embeddings for semantic search</li>
+<li><strong>TTL:</strong> Short-term context (24h), Long-term Q&amp;A pairs (indefinite)</li>
+</ul>
+</div>
+</div></section>
+<section class="sec alt" id="security"><div class="wrap">
+<div class="sec-hd fade-in"><div class="bar"></div><span class="material-icons-outlined">security</span><h2>Security &amp; Compliance</h2></div>
+<div class="tbl-wrap fade-in"><table>
+<thead><tr><th>Layer</th><th>Mechanism</th><th>Details</th></tr></thead>
+<tbody>
+<tr><td>Identity</td><td>Microsoft Entra ID</td><td>SSO, MFA, conditional access</td></tr>
+<tr><td>SharePoint permissions</td><td>ACL sync / Identity passthrough</td><td>Users see only authorized content</td></tr>
+<tr><td>Data residency</td><td>Azure region selection</td><td>All processing stays in your tenant</td></tr>
+<tr><td>Sensitivity labels</td><td>Microsoft Purview</td><td>Enforced at query time by Foundry IQ</td></tr>
+<tr><td>Audit trail</td><td>Cosmos DB + Azure Monitor</td><td>Full conversation logging</td></tr>
+<tr><td>Bot security</td><td>Managed Identity</td><td>No stored credentials</td></tr>
+<tr><td>Compliance</td><td>SOC 2, ISO 27001, GDPR</td><td>Inherited from Azure platform</td></tr>
+</tbody></table></div>
+
+<div class="KF fade-in" style="margin-top:20px">
+<h3><span class="material-icons-outlined">vpn_key</span> Key Requirement: OBO (On-Behalf-Of) Flow</h3>
+<p>For SharePoint content retrieval to respect per-user permissions, the agent must use <strong>identity passthrough</strong> (not app-only tokens). This ensures:</p>
+<ul>
+<li>Each user's query is executed under their identity</li>
+<li>SharePoint ACLs are enforced in real-time</li>
+<li>No data leakage between users with different permission levels</li>
+</ul>
+</div>
+</div></section>
+
+<section class="sec" id="limits"><div class="wrap">
+<div class="sec-hd fade-in"><div class="bar"></div><span class="material-icons-outlined">warning</span><h2>Known Limitations &amp; Preview Caveats</h2></div>
+<div class="warn-box fade-in">As of April 2026, several components are in Preview. Review these limitations before committing to an architecture.</div>
+<div class="tbl-wrap fade-in"><table>
+<thead><tr><th>Limitation</th><th>Impact</th><th>Source</th></tr></thead>
+<tbody>
+<tr><td>SharePoint tool does NOT work in Teams-published agents</td><td>Must use Foundry IQ (indexed) for Teams deployments, not the SharePoint tool</td><td><a href="https://learn.microsoft.com/en-us/azure/foundry/agents/how-to/tools/sharepoint" target="_blank">MS Learn</a></td></tr>
+<tr><td>Published agents do not support citations</td><td>Citations work in playground/dev but not in production Teams agents</td><td><a href="https://learn.microsoft.com/en-us/azure/foundry/agents/how-to/publish-copilot" target="_blank">MS Learn</a></td></tr>
+<tr><td>No per-request MCP headers</td><td>Per-user auth requires Azure OpenAI Responses API</td><td><a href="https://learn.microsoft.com/en-us/azure/foundry/agents/how-to/foundry-iq-connect" target="_blank">MS Learn</a></td></tr>
+<tr><td>Foundry IQ is in Preview</td><td>Not recommended for production without SLA</td><td><a href="https://learn.microsoft.com/en-us/azure/foundry/agents/concepts/what-is-foundry-iq" target="_blank">MS Learn</a></td></tr>
+<tr><td>AI in SharePoint is in Preview</td><td>GA date not announced; features may change</td><td><a href="https://learn.microsoft.com/en-us/sharepoint/ai-in-sharepoint-get-started" target="_blank">MS Learn</a></td></tr>
+<tr><td>Copilot Retrieval API pay-as-you-go is Preview</td><td>Pricing ($0.10/call) may change at GA</td><td><a href="https://learn.microsoft.com/en-us/microsoft-365-copilot/extensibility/api/ai-services/retrieval/paygo-retrieval" target="_blank">MS Learn</a></td></tr>
+<tr><td>Foundry IQ and M365 Copilot sources NOT interoperable</td><td>Cannot mix knowledge sources across platforms</td><td><a href="https://learn.microsoft.com/en-us/azure/foundry/agents/concepts/foundry-iq-faq" target="_blank">MS Learn</a></td></tr>
+<tr><td>SharePoint content indexing has lag</td><td>Recently added content needs time to appear in Microsoft Search and Azure AI Search indexes</td><td><a href="https://learn.microsoft.com/en-us/azure/foundry/agents/how-to/tools/sharepoint" target="_blank">MS Learn</a></td></tr>
+</tbody></table></div>
+</div></section>
+
+<section class="sec alt" id="pricing"><div class="wrap">
+<div class="sec-hd fade-in"><div class="bar"></div><span class="material-icons-outlined">payments</span><h2>Pricing &amp; Cost Considerations</h2></div>
+<div class="note fade-in">Pricing is region-dependent and subject to change. Always verify at <a href="https://azure.microsoft.com/en-us/pricing/" target="_blank">azure.microsoft.com/pricing</a>.</div>
+<div class="tbl-wrap fade-in"><table>
+<thead><tr><th>Component</th><th>Pricing Model</th><th>Notes</th></tr></thead>
+<tbody>
+<tr><td>Foundry Agent Service</td><td>No platform fee</td><td>Pay for model tokens, tools, connected services</td></tr>
+<tr><td>Azure OpenAI (GPT-4o)</td><td>Per 1K tokens</td><td>Varies by model and region</td></tr>
+<tr><td>Azure AI Search</td><td>Tier-based (Free to S3 HD)</td><td>Free tier: 50MB for PoC</td></tr>
+<tr><td>Foundry file search storage</td><td>Per GB/day (first 1GB free)</td><td>Under "Tools" on Foundry pricing page</td></tr>
+<tr><td>Cosmos DB</td><td>RU/s + storage</td><td>Free Tier: 1000 RU/s + 25 GB</td></tr>
+<tr><td>Azure Bot Service</td><td>Free for standard channels</td><td>$0 for Teams channel</td></tr>
+<tr><td>M365 Copilot license</td><td>Per-user/month</td><td>Required for remote SP queries; OR $0.10/call</td></tr>
+<tr><td>Copilot Studio</td><td>Per-tenant/month</td><td>~$200/month</td></tr>
+<tr><td>Azure hosting</td><td>Varies by service</td><td>Functions (consumption) vs App Service vs Container Apps</td></tr>
+</tbody></table></div>
+
+<h3 class="fade-in" style="color:var(--dark);margin:24px 0 12px">Cost Optimization Tips</h3>
+<div class="C r fade-in">
+<ol>
+<li><strong>Start with Free tiers</strong> -- Azure AI Search Free, Cosmos DB Free Tier, Foundry IQ free token allocation</li>
+<li><strong>Use GPT-4o-mini</strong> for simpler queries, GPT-4o for complex ones</li>
+<li><strong>Cache frequent Q&amp;A</strong> in Cosmos DB to reduce model calls</li>
+<li><strong>Use indexed SharePoint</strong> (Foundry IQ) to avoid per-user Copilot license requirements</li>
+<li><strong>Consider pay-as-you-go</strong> for Copilot Retrieval API if volume is low</li>
+<li><strong>Monitor with Azure Cost Management</strong> -- set budgets and alerts</li>
+<li><strong>Use the FastTrack Cost Calculator:</strong> <a href="https://github.com/microsoft/FastTrack/tree/master/copilot-agent-strategy/copilot-agents-cost-tool" target="_blank">GitHub</a></li>
+</ol>
+</div>
+</div></section>
+<section class="sec" id="anti"><div class="wrap">
+<div class="sec-hd fade-in"><div class="bar"></div><span class="material-icons-outlined">block</span><h2>Anti-Patterns: What NOT to Do</h2></div>
+<ul class="anti fade-in">
+<li><span class="material-icons-outlined">warning</span><span><strong>Do NOT start with Option E (Hybrid)</strong> if Option A suffices -- validate with real users first, then evolve</span></li>
+<li><span class="material-icons-outlined">warning</span><span><strong>Do NOT add Cosmos DB</strong> unless you have specific needs beyond Foundry's built-in thread management</span></li>
+<li><span class="material-icons-outlined">warning</span><span><strong>Do NOT call Q&amp;A caching "AI learning"</strong> -- the model does not fine-tune or adapt from past conversations</span></li>
+<li><span class="material-icons-outlined">warning</span><span><strong>Do NOT use the SharePoint tool</strong> if publishing to Teams -- it won't work; use Foundry IQ indexed sources</span></li>
+<li><span class="material-icons-outlined">warning</span><span><strong>Do NOT use Bot Framework v4</strong> for new projects -- it's archived; use M365 Agents SDK</span></li>
+<li><span class="material-icons-outlined">warning</span><span><strong>Do NOT assume "fully managed"</strong> means zero configuration -- you still manage Azure AI Search, OpenAI quotas, Entra ID, and Bot Service</span></li>
+<li><span class="material-icons-outlined">warning</span><span><strong>Do NOT skip security testing</strong> -- test prompt injection defenses, verify ACL enforcement per user, validate OBO token handling</span></li>
+<li><span class="material-icons-outlined">warning</span><span><strong>Do NOT ignore content quality</strong> -- enable AI in SharePoint to clean up stale/broken content before indexing</span></li>
+</ul>
+</div></section>
+
+<section class="sec alt" id="samples"><div class="wrap">
+<div class="sec-hd fade-in"><div class="bar"></div><span class="material-icons-outlined">code</span><h2>Reference Implementations &amp; Samples</h2></div>
+<div class="tbl-wrap fade-in"><table>
+<thead><tr><th>Sample</th><th>Description</th><th>Link</th></tr></thead>
+<tbody>
+<tr><td>microsoft/app-with-sharepoint-knowledge</td><td>Official MS sample: web app + Foundry agent + SharePoint</td><td><a href="https://github.com/microsoft/app-with-sharepoint-knowledge" target="_blank">GitHub</a></td></tr>
+<tr><td>pkumar26/sharepoint-foundryagent</td><td>Document Q&amp;A Agent with FastAPI, Azure OpenAI, Cosmos DB</td><td><a href="https://github.com/pkumar26/sharepoint-foundryagent" target="_blank">GitHub</a></td></tr>
+<tr><td>azure-search-openai-demo</td><td>Full RAG solution with Azure AI Search + OpenAI</td><td><a href="https://github.com/Azure-Samples/azure-search-openai-demo" target="_blank">GitHub</a></td></tr>
+<tr><td>ms365_agents_sdk_with_foundry_agent</td><td>Foundry Agent + M365 Agents SDK for Teams</td><td><a href="https://github.com/adhazel/ms365_agents_sdk_with_foundry_agent_sample" target="_blank">GitHub</a></td></tr>
+<tr><td>Microsoft-Foundry-SharePoint</td><td>Step-by-step SharePoint + Foundry integration</td><td><a href="https://github.com/Origin-Digital-LLC/Microsoft-Foundry-SharePoint" target="_blank">GitHub</a></td></tr>
+<tr><td>Copilot Camp Lab BMA3</td><td>Lab: Integrate Foundry Agent with M365 Agents SDK</td><td><a href="https://microsoft.github.io/copilot-camp/pages/custom-engine/agents-sdk/03-agent-configuration/" target="_blank">Lab</a></td></tr>
+</tbody></table></div>
+
+<h3 class="fade-in" style="color:var(--dark);margin:24px 0 12px">Official Documentation Links</h3>
+<div class="C a fade-in">
+<ul>
+<li><a href="https://learn.microsoft.com/en-us/azure/foundry/agents/concepts/what-is-foundry-iq" target="_blank">Foundry IQ Overview</a></li>
+<li><a href="https://learn.microsoft.com/en-us/azure/foundry/agents/how-to/tools/sharepoint" target="_blank">SharePoint as Knowledge Source</a></li>
+<li><a href="https://learn.microsoft.com/en-us/azure/foundry/agents/how-to/foundry-iq-connect" target="_blank">Connect Foundry IQ to Agent Service</a></li>
+<li><a href="https://learn.microsoft.com/en-us/azure/foundry/agents/how-to/publish-copilot" target="_blank">Publish Agent to Teams</a></li>
+<li><a href="https://learn.microsoft.com/en-us/azure/foundry/agents/concepts/foundry-iq-faq" target="_blank">Foundry IQ FAQ</a></li>
+<li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/gen-ai/agentic-memories" target="_blank">Azure Cosmos DB Agent Memory</a></li>
+<li><a href="https://azure.microsoft.com/en-us/pricing/details/foundry-agent-service/" target="_blank">Foundry Agent Service Pricing</a></li>
+</ul>
+</div>
+</div></section>
+<section class="sec" id="rec"><div class="wrap">
+<div class="sec-hd fade-in"><div class="bar"></div><span class="material-icons-outlined">rocket_launch</span><h2>Final Recommendation</h2></div>
+
+<h3 class="fade-in" style="color:var(--dark);margin-bottom:16px">Progressive Enhancement Strategy</h3>
+<div class="svg-wrap fade-in">
+<svg role="img" aria-label="Progressive Enhancement Strategy: Phase 1 to Phase 3" viewBox="0 0 900 360" xmlns="http://www.w3.org/2000/svg" style="max-width:900px">
+<defs><marker id="a6" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#064dd9"/></marker></defs>
+<!-- Phase 1 -->
+<rect x="20" y="20" width="260" height="210" rx="10" fill="#064dd9" opacity=".9"/>
+<text x="150" y="50" text-anchor="middle" fill="#cddc3a" font-size="13" font-weight="bold">PHASE 1: VALIDATE</text>
+<text x="150" y="70" text-anchor="middle" fill="rgba(255,255,255,.7)" font-size="10">(Option A -- 1-2 weeks PoC)</text>
+<text x="40" y="95" fill="#fff" font-size="10">Foundry Agent + Foundry IQ</text>
+<text x="40" y="115" fill="#fff" font-size="10">Azure AI Search (Free tier)</text>
+<text x="40" y="135" fill="#fff" font-size="10">Publish to Teams</text>
+<text x="40" y="155" fill="#fff" font-size="10">Test with pilot users (5-10)</text>
+<text x="40" y="175" fill="#fff" font-size="10">Built-in thread management</text>
+<text x="40" y="195" fill="#fff" font-size="10">Collect initial feedback</text>
+<!-- Arrow -->
+<line x1="280" y1="125" x2="320" y2="125" stroke="#cddc3a" stroke-width="3" marker-end="url(#a6)"/>
+<!-- Phase 2 -->
+<rect x="320" y="20" width="260" height="210" rx="10" fill="#2962ff" opacity=".9"/>
+<text x="450" y="50" text-anchor="middle" fill="#cddc3a" font-size="13" font-weight="bold">PHASE 2: ENHANCE</text>
+<text x="450" y="70" text-anchor="middle" fill="rgba(255,255,255,.7)" font-size="10">(Based on real feedback)</text>
+<text x="340" y="95" fill="#fff" font-size="10">IF need web UI -> add frontend</text>
+<text x="340" y="115" fill="#fff" font-size="10">IF need analytics -> add Cosmos DB</text>
+<text x="340" y="135" fill="#fff" font-size="10">IF need feedback -> add dashboard</text>
+<text x="340" y="155" fill="#fff" font-size="10">IF non-tech teams -> Copilot Studio</text>
+<text x="340" y="175" fill="#fff" font-size="10">Enable AI in SharePoint</text>
+<!-- Arrow -->
+<line x1="580" y1="125" x2="620" y2="125" stroke="#cddc3a" stroke-width="3" marker-end="url(#a6)"/>
+<!-- Phase 3 -->
+<rect x="620" y="20" width="260" height="210" rx="10" fill="#01233f"/>
+<text x="750" y="50" text-anchor="middle" fill="#cddc3a" font-size="13" font-weight="bold">PHASE 3: SCALE</text>
+<text x="750" y="70" text-anchor="middle" fill="rgba(255,255,255,.7)" font-size="10">(Option E -- when justified)</text>
+<text x="640" y="95" fill="#fff" font-size="10">Custom backend (Functions/App Svc)</text>
+<text x="640" y="115" fill="#fff" font-size="10">Q&amp;A caching engine</text>
+<text x="640" y="135" fill="#fff" font-size="10">Admin dashboard (analytics)</text>
+<text x="640" y="155" fill="#fff" font-size="10">Prompt engineering refinement</text>
+<text x="640" y="175" fill="#fff" font-size="10">Scale AI Search tier</text>
+<text x="640" y="195" fill="#fff" font-size="10">Azure Monitor + App Insights</text>
+<!-- Alternative paths -->
+<rect x="20" y="260" width="860" height="80" rx="10" fill="#eff1f4" stroke="#d3d8de"/>
+<text x="450" y="285" text-anchor="middle" fill="#01233f" font-size="12" font-weight="bold">ALTERNATIVE PATHS</text>
+<text x="170" y="310" text-anchor="middle" fill="#064dd9" font-size="11">No developers?</text>
+<text x="170" y="325" text-anchor="middle" fill="#6b6b6b" font-size="10">Option B (Copilot Studio)</text>
+<text x="450" y="310" text-anchor="middle" fill="#064dd9" font-size="11">All users have M365 Copilot?</text>
+<text x="450" y="325" text-anchor="middle" fill="#6b6b6b" font-size="10">Option C (Declarative Agent)</text>
+<text x="730" y="310" text-anchor="middle" fill="#064dd9" font-size="11">Need multi-cloud?</text>
+<text x="730" y="325" text-anchor="middle" fill="#6b6b6b" font-size="10">Option D (Semantic Kernel)</text>
+</svg>
+</div>
+
+<h3 class="fade-in" style="color:var(--dark);margin:28px 0 12px">Why NOT Start with Hybrid (Option E)?</h3>
+<div class="tbl-wrap fade-in"><table>
+<thead><tr><th>Concern</th><th>Reality</th></tr></thead>
+<tbody>
+<tr><td>"We need a custom web app"</td><td>Validate in Teams first -- most users are already there</td></tr>
+<tr><td>"We need learning from Q&amp;A"</td><td>This is Q&amp;A caching, not ML. Add it later with Cosmos DB when you have usage data</td></tr>
+<tr><td>"We need full control"</td><td>Foundry IQ handles 80% of the work. Customize only what you must.</td></tr>
+<tr><td>"We need analytics"</td><td>Start with Foundry's built-in metrics. Add Cosmos DB + dashboard in Phase 3</td></tr>
+</tbody></table></div>
+
+<h3 class="fade-in" style="color:var(--dark);margin:28px 0 12px">Key Architecture Decisions Summary</h3>
+<div class="tbl-wrap fade-in"><table>
+<thead><tr><th>Decision</th><th>Recommendation</th><th>Rationale</th></tr></thead>
+<tbody>
+<tr><td>SharePoint access method</td><td>Foundry IQ (indexed) for Teams; SP tool for dev/testing</td><td>SharePoint tool doesn't work in Teams-published agents</td></tr>
+<tr><td>Conversation history</td><td>Start with Foundry built-in threads</td><td>Add Cosmos DB only if you need cross-session persistence</td></tr>
+<tr><td>Hosting (custom backend)</td><td>Azure Functions (low traffic) or App Service (always-on)</td><td>Container Apps only if multi-service orchestration</td></tr>
+<tr><td>Orchestrator</td><td>Foundry Agent Service (default) or Semantic Kernel</td><td>Foundry is simpler; SK is more portable</td></tr>
+<tr><td>Bot framework</td><td>M365 Agents SDK</td><td>Bot Framework v4 is archived</td></tr>
+<tr><td>Content readiness</td><td>Enable AI in SharePoint</td><td>Improves retrieval via auto-tagging and content hygiene</td></tr>
+</tbody></table></div>
+
+<h3 class="fade-in" style="color:var(--dark);margin:28px 0 12px">Implementation Roadmap</h3>
+<div class="timeline fade-in">
+<div class="tl-item">
+<h4><span class="badge badge-blue">Phase 1</span> Foundation &amp; Validation (1-2 weeks PoC, 4-8 weeks production)</h4>
+<p>Set up Foundry project + Azure AI Search (Free tier). Connect SharePoint as Foundry IQ indexed knowledge source. Create basic agent with system prompt + knowledge_base_retrieve MCP tool. Test in Foundry playground; validate ACL enforcement. Publish to Teams; test with pilot users (5-10). Collect initial feedback on answer quality.</p>
+</div>
+<div class="tl-item p2">
+<h4><span class="badge badge-pear">Phase 2</span> Feedback-Driven Enhancement</h4>
+<p>Based on pilot feedback, decide: Teams-only (stay Option A) or custom web (evolve to Option E). If needed: add Cosmos DB for conversation persistence and Q&amp;A caching. If needed: build custom web frontend (React/Blazor). Enable AI in SharePoint for content hygiene.</p>
+</div>
+<div class="tl-item p3">
+<h4><span class="badge badge-warn">Phase 3</span> Scale &amp; Optimize (if Option E)</h4>
+<p>Build Q&amp;A caching engine. Add admin dashboard: usage analytics, content gaps, feedback review. Implement prompt engineering refinements. Scale Azure AI Search tier. Set up Azure Monitor + Application Insights. Implement rate limiting and circuit breakers.</p>
+</div>
+</div>
+
+<div class="KF fade-in">
+<h3><span class="material-icons-outlined">verified</span> Reviewer Credits</h3>
+<ul>
+<li><strong>GPT-5.2</strong> -- Fact-checked all claims against official Microsoft documentation (176 tool calls)</li>
+<li><strong>Claude Sonnet 4.5</strong> -- Challenged architecture decisions, identified missing alternatives</li>
+<li><strong>Claude Sonnet 4</strong> -- Reviewed completeness, customer-readiness, and operational gaps</li>
+</ul>
+</div>
+</div></section>
+<section class="sec alt" id="refs"><div class="wrap">
+<div class="sec-hd fade-in"><div class="bar"></div><span class="material-icons-outlined">menu_book</span><h2>References</h2></div>
+
+<div class="collapse-toggle fade-in open" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open')">
+<span class="material-icons-outlined">chevron_right</span>
+<h3 style="margin:0;font-size:1rem;color:var(--dark)">Official Microsoft Documentation (1-23)</h3>
+</div>
+<div class="collapse-body open">
+<ol class="ref-list" start="1" style="list-style:decimal;margin-left:24px">
+<li><strong>Foundry Agent Service -- Overview</strong><br><a href="https://learn.microsoft.com/en-us/azure/foundry/agents/" target="_blank">learn.microsoft.com/azure/foundry/agents/</a></li>
+<li><strong>Foundry IQ -- What is Foundry IQ (Preview)</strong><br><a href="https://learn.microsoft.com/en-us/azure/foundry/agents/concepts/what-is-foundry-iq" target="_blank">learn.microsoft.com/.../what-is-foundry-iq</a></li>
+<li><strong>Foundry IQ -- Frequently Asked Questions</strong><br><a href="https://learn.microsoft.com/en-us/azure/foundry/agents/concepts/foundry-iq-faq" target="_blank">learn.microsoft.com/.../foundry-iq-faq</a></li>
+<li><strong>Connect a Foundry IQ Knowledge Base to Foundry Agent Service</strong><br><a href="https://learn.microsoft.com/en-us/azure/foundry/agents/how-to/foundry-iq-connect" target="_blank">learn.microsoft.com/.../foundry-iq-connect</a></li>
+<li><strong>Use SharePoint Tool with the Agent API (Preview)</strong><br><a href="https://learn.microsoft.com/en-us/azure/foundry/agents/how-to/tools/sharepoint" target="_blank">learn.microsoft.com/.../tools/sharepoint</a></li>
+<li><strong>Publish Agents to M365 Copilot and Teams</strong><br><a href="https://learn.microsoft.com/en-us/azure/foundry/agents/how-to/publish-copilot" target="_blank">learn.microsoft.com/.../publish-copilot</a></li>
+<li><strong>Azure AI Search -- Overview</strong><br><a href="https://learn.microsoft.com/en-us/azure/search/" target="_blank">learn.microsoft.com/azure/search/</a></li>
+<li><strong>Azure AI Search -- Create a Knowledge Base (Agentic Retrieval)</strong><br><a href="https://learn.microsoft.com/en-us/azure/search/agentic-retrieval-how-to-create-knowledge-base" target="_blank">learn.microsoft.com/.../agentic-retrieval...</a></li>
+<li><strong>Azure AI Search -- Remote SharePoint Knowledge Source</strong><br><a href="https://learn.microsoft.com/en-us/azure/search/agentic-knowledge-source-how-to-sharepoint-remote" target="_blank">learn.microsoft.com/.../sharepoint-remote</a></li>
+<li><strong>Azure AI Search -- Document-Level Access Control</strong><br><a href="https://learn.microsoft.com/en-us/azure/search/search-document-level-access-overview" target="_blank">learn.microsoft.com/.../search-document-level-access...</a></li>
+<li><strong>AI in SharePoint -- Get Started</strong><br><a href="https://learn.microsoft.com/en-us/sharepoint/ai-in-sharepoint-get-started" target="_blank">learn.microsoft.com/.../ai-in-sharepoint-get-started</a></li>
+<li><strong>Azure Cosmos DB -- Agent Memory Patterns</strong><br><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/gen-ai/agentic-memories" target="_blank">learn.microsoft.com/.../agentic-memories</a></li>
+<li><strong>Azure Cosmos DB -- Free Tier</strong><br><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/free-tier" target="_blank">learn.microsoft.com/.../free-tier</a></li>
+<li><strong>M365 Agents SDK -- Bot Framework Migration Guidance</strong><br><a href="https://learn.microsoft.com/en-us/microsoft-365/agents-sdk/bf-migration-guidance" target="_blank">learn.microsoft.com/.../bf-migration-guidance</a></li>
+<li><strong>Azure Bot Service -- Overview</strong><br><a href="https://learn.microsoft.com/en-us/azure/bot-service/bot-service-overview" target="_blank">learn.microsoft.com/.../bot-service-overview</a></li>
+<li><strong>Microsoft Copilot Studio -- Overview</strong><br><a href="https://learn.microsoft.com/en-us/microsoft-copilot-studio/" target="_blank">learn.microsoft.com/microsoft-copilot-studio/</a></li>
+
+<li><strong>M365 Copilot -- Extensibility Overview</strong><br><a href="https://learn.microsoft.com/en-us/microsoft-365-copilot/extensibility/" target="_blank">learn.microsoft.com/.../extensibility/</a></li>
+<li><strong>M365 Copilot -- Retrieval API Overview</strong><br><a href="https://learn.microsoft.com/en-us/microsoft-365-copilot/extensibility/api-reference/retrieval-api-overview" target="_blank">learn.microsoft.com/.../retrieval-api-overview</a></li>
+<li><strong>M365 Copilot -- Pay-as-You-Go Retrieval (Preview)</strong><br><a href="https://learn.microsoft.com/en-us/microsoft-365-copilot/extensibility/api/ai-services/retrieval/paygo-retrieval" target="_blank">learn.microsoft.com/.../paygo-retrieval</a></li>
+<li><strong>Semantic Indexing for M365 Copilot</strong><br><a href="https://learn.microsoft.com/en-us/microsoftsearch/semantic-index-for-copilot" target="_blank">learn.microsoft.com/.../semantic-index-for-copilot</a></li>
+<li><strong>Teams SDK (Teams AI Library) -- Overview</strong><br><a href="https://learn.microsoft.com/en-us/microsoftteams/platform/teams-sdk/" target="_blank">learn.microsoft.com/.../teams-sdk/</a></li>
+<li><strong>Azure OpenAI Responses API</strong><br><a href="https://learn.microsoft.com/en-us/azure/ai-foundry/openai/how-to/responses" target="_blank">learn.microsoft.com/.../responses</a></li>
+<li><strong>SharePoint Developer -- GitHub Repositories</strong><br><a href="https://learn.microsoft.com/en-us/sharepoint/dev/community/repositories" target="_blank">learn.microsoft.com/.../repositories</a></li>
+</ol>
+</div>
+
+<div class="collapse-toggle fade-in" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open')">
+<span class="material-icons-outlined">chevron_right</span>
+<h3 style="margin:0;font-size:1rem;color:var(--dark)">Azure Pricing Pages (24-28)</h3>
+</div>
+<div class="collapse-body">
+<ol class="ref-list" start="24" style="list-style:decimal;margin-left:24px">
+<li><strong>Foundry Agent Service -- Pricing</strong><br><a href="https://azure.microsoft.com/en-us/pricing/details/foundry-agent-service/" target="_blank">azure.microsoft.com/.../foundry-agent-service/</a></li>
+<li><strong>Azure OpenAI Service -- Pricing</strong><br><a href="https://azure.microsoft.com/en-us/pricing/details/cognitive-services/openai-service/" target="_blank">azure.microsoft.com/.../openai-service/</a></li>
+<li><strong>Azure AI Search -- Pricing</strong><br><a href="https://azure.microsoft.com/en-us/pricing/details/search/" target="_blank">azure.microsoft.com/.../search/</a></li>
+<li><strong>Azure Pricing Calculator</strong><br><a href="https://azure.microsoft.com/en-us/pricing/" target="_blank">azure.microsoft.com/pricing/</a></li>
+<li><strong>Azure AI Foundry Pricing Guide (PDF)</strong><br><a href="https://cdn-dynmedia-1.microsoft.com/is/content/microsoftcorp/microsoft/final/en-us/microsoft-product-and-services/azure/pdf/ms-azure-ai-foundry-pricing-guide-e-book-final.pdf" target="_blank">Azure AI Foundry Pricing Guide PDF</a></li>
+</ol>
+</div>
+
+<div class="collapse-toggle fade-in" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open')">
+<span class="material-icons-outlined">chevron_right</span>
+<h3 style="margin:0;font-size:1rem;color:var(--dark)">GitHub Reference Implementations (29-35)</h3>
+</div>
+<div class="collapse-body">
+<ol class="ref-list" start="29" style="list-style:decimal;margin-left:24px">
+<li><strong>microsoft/app-with-sharepoint-knowledge</strong><br><a href="https://github.com/microsoft/app-with-sharepoint-knowledge" target="_blank">github.com/microsoft/app-with-sharepoint-knowledge</a></li>
+<li><strong>pkumar26/sharepoint-foundryagent</strong><br><a href="https://github.com/pkumar26/sharepoint-foundryagent" target="_blank">github.com/pkumar26/sharepoint-foundryagent</a></li>
+<li><strong>Azure-Samples/azure-search-openai-demo</strong><br><a href="https://github.com/Azure-Samples/azure-search-openai-demo" target="_blank">github.com/Azure-Samples/azure-search-openai-demo</a></li>
+<li><strong>adhazel/ms365_agents_sdk_with_foundry_agent_sample</strong><br><a href="https://github.com/adhazel/ms365_agents_sdk_with_foundry_agent_sample" target="_blank">github.com/adhazel/ms365_agents_sdk...</a></li>
+<li><strong>Origin-Digital-LLC/Microsoft-Foundry-SharePoint</strong><br><a href="https://github.com/Origin-Digital-LLC/Microsoft-Foundry-SharePoint" target="_blank">github.com/Origin-Digital-LLC/Microsoft-Foundry-SharePoint</a></li>
+<li><strong>microsoft/FastTrack -- Copilot Agents Cost Tool</strong><br><a href="https://github.com/microsoft/FastTrack/tree/master/copilot-agent-strategy/copilot-agents-cost-tool" target="_blank">github.com/microsoft/FastTrack/...</a></li>
+<li><strong>AzureCosmosDB/cosmosdb-chat-history-langchaingo</strong><br><a href="https://github.com/AzureCosmosDB/cosmosdb-chat-history-langchaingo" target="_blank">github.com/AzureCosmosDB/cosmosdb-chat-history...</a></li>
+</ol>
+</div>
+
+<div class="collapse-toggle fade-in" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open')">
+<span class="material-icons-outlined">chevron_right</span>
+<h3 style="margin:0;font-size:1rem;color:var(--dark)">Microsoft Tech Community &amp; Blog Posts (36-37)</h3>
+</div>
+<div class="collapse-body">
+<ol class="ref-list" start="36" style="list-style:decimal;margin-left:24px">
+<li><strong>Introducing Knowledge Agent in SharePoint</strong><br><a href="https://techcommunity.microsoft.com/blog/spblog/introducing-knowledge-agent-in-sharepoint/4454154" target="_blank">techcommunity.microsoft.com/.../introducing-knowledge-agent...</a></li>
+<li><strong>Native Microsoft Agent 365 Integration in Foundry</strong><br><a href="https://techcommunity.microsoft.com/blog/azure-ai-foundry-blog/native-microsoft-agent-365-integration-in-microsoft-foundry/4471186" target="_blank">techcommunity.microsoft.com/.../native-microsoft-agent-365...</a></li>
+</ol>
+</div>
+
+<div class="collapse-toggle fade-in" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open')">
+<span class="material-icons-outlined">chevron_right</span>
+<h3 style="margin:0;font-size:1rem;color:var(--dark)">Labs &amp; Tutorials (38-40)</h3>
+</div>
+<div class="collapse-body">
+<ol class="ref-list" start="38" style="list-style:decimal;margin-left:24px">
+<li><strong>Copilot Camp -- Lab BMA3</strong><br><a href="https://microsoft.github.io/copilot-camp/pages/custom-engine/agents-sdk/03-agent-configuration/" target="_blank">microsoft.github.io/copilot-camp/...</a></li>
+<li><strong>Azure Lessons -- Deploy to Teams Tutorial</strong><br><a href="https://azurelessons.com/azure-ai-foundry-deploy-to-teams/" target="_blank">azurelessons.com/.../deploy-to-teams/</a></li>
+<li><strong>Azure Logic Apps Labs -- SharePoint RAG</strong><br><a href="https://azure.github.io/logicapps-labs/docs/ai-workloads-on-logicapps/sharepoint-rag/" target="_blank">azure.github.io/logicapps-labs/.../sharepoint-rag/</a></li>
+</ol>
+</div>
+
+<div class="collapse-toggle fade-in" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open')">
+<span class="material-icons-outlined">chevron_right</span>
+<h3 style="margin:0;font-size:1rem;color:var(--dark)">Community &amp; Third-Party Analysis (41-54)</h3>
+</div>
+<div class="collapse-body">
+<ol class="ref-list" start="41" style="list-style:decimal;margin-left:24px">
+<li><strong>Foundry IQ: The Knowledge Layer for Agents</strong> -- Technspire<br><a href="https://technspire.com/blog/ignite-2025-brk196-foundry-iq-knowledge-layer-agents" target="_blank">technspire.com/.../foundry-iq-knowledge-layer...</a></li>
+<li><strong>Foundry IQ: The Ultimate Enterprise AI Knowledge Layer</strong> -- Power Platform Cave<br><a href="https://www.thepowerplatformcave.com/foundry-iq-the-missing-link-in-your-enterprise-ai-architecture/" target="_blank">thepowerplatformcave.com/.../foundry-iq...</a></li>
+<li><strong>Making SharePoint AI-Ready with Knowledge Agent</strong> -- Nanddeep Nachan<br><a href="https://nanddeepnachanblogs.com/posts/2025-09-25-sharepoint-knowledge-agent/" target="_blank">nanddeepnachanblogs.com/.../sharepoint-knowledge-agent/</a></li>
+<li><strong>SharePoint Knowledge Agent Deep Dive</strong> -- VladTalksTech<br><a href="https://vladtalkstech.com/microsoft-365/sharepoint/sharepoint-knowledge-agent-deep-dive-how-it-works-setup-and-best-practices/" target="_blank">vladtalkstech.com/.../sharepoint-knowledge-agent...</a></li>
+<li><strong>Microsoft Teams Development SDK Guidance</strong> -- Voitanos<br><a href="https://www.voitanos.io/blog/microsoft-teams-sdk-evolution-2025/" target="_blank">voitanos.io/.../microsoft-teams-sdk-evolution-2025/</a></li>
+<li><strong>Copilot Agents: Agent Builder, Copilot Studio, or Foundry?</strong> -- CloudBuild<br><a href="https://cloudbuild.co.uk/copilot-agents-agent-builder-copilot-studio-or-foundry/" target="_blank">cloudbuild.co.uk/.../copilot-agents...</a></li>
+<li><strong>Multi-Agent Orchestration: Copilot Studio vs Foundry</strong> -- Ragnar Heil<br><a href="https://ragnarheil.de/multi-agent-orchestration-copilot-studio-vs-azure-ai-foundry-heres-what-you-actually-need-to-know/" target="_blank">ragnarheil.de/.../multi-agent-orchestration...</a></li>
+<li><strong>Building AI Agents: Choosing Between Copilot Studio and Foundry</strong> -- Emergent Software<br><a href="https://www.emergentsoftware.net/blog/building-ai-agents-choosing-between-microsoft-copilot-studio-and-azure-ai-foundry/" target="_blank">emergentsoftware.net/.../building-ai-agents...</a></li>
+<li><strong>Azure AI Foundry Pricing Guide for Enterprises</strong> -- AlRafay Global<br><a href="https://alrafayglobal.com/azure-ai-foundry-pricing-what-enterprises-need-to-know-before-scaling-ai/" target="_blank">alrafayglobal.com/.../azure-ai-foundry-pricing...</a></li>
+<li><strong>Store Chat History Using External Storage</strong> -- Will Velida (Dev.to)<br><a href="https://dev.to/willvelida/how-to-store-chat-history-using-external-storage-in-microsoft-agent-framework-3io2" target="_blank">dev.to/willvelida/.../external-storage...</a></li>
+<li><strong>Set Up SharePoint Agents Step-by-Step</strong> -- SPKnowledge<br><a href="https://spknowledge.com/2025/10/08/how-to-set-up-sharepoint-agents-step-by-step-2025-edition-complete-admin-guide/" target="_blank">spknowledge.com/.../sharepoint-agents-step-by-step...</a></li>
+<li><strong>Licensing and Pricing for SharePoint Agents</strong> -- SPKnowledge<br><a href="https://spknowledge.com/2025/10/17/licensing-and-pricing-for-sharepoint-agents-microsoft-365-copilot-integration-explained/" target="_blank">spknowledge.com/.../licensing-and-pricing...</a></li>
+<li><strong>SharePoint Knowledge Integration</strong> -- Origin Digital<br><a href="https://www.origindigital.com/insights/sharepoint-knowledge-connections-to-foundry-agents-the-easy-way" target="_blank">origindigital.com/.../sharepoint-knowledge-connections...</a></li>
+<li><strong>Real-time Enterprise RAG with SharePoint</strong> -- Pathway<br><a href="https://pathway.com/framework/blog/enterprise_rag_sharepoint" target="_blank">pathway.com/.../enterprise_rag_sharepoint</a></li>
+</ol>
+</div>
+
+<div class="collapse-toggle fade-in" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open')">
+<span class="material-icons-outlined">chevron_right</span>
+<h3 style="margin:0;font-size:1rem;color:var(--dark)">Video Resources (55-58)</h3>
+</div>
+<div class="collapse-body">
+<ol class="ref-list" start="55" style="list-style:decimal;margin-left:24px">
+<li><strong>Introduction to Foundry IQ</strong><br><a href="https://www.youtube.com/watch?v=slDdNIQCJBQ" target="_blank">YouTube: Introduction to Foundry IQ</a></li>
+<li><strong>Foundry IQ Deep Dive</strong><br><a href="https://www.youtube.com/watch?v=uDVkcZwB0EU" target="_blank">YouTube: Foundry IQ Deep Dive</a></li>
+<li><strong>Foundry IQ Portal Demo</strong><br><a href="https://www.youtube.com/watch?v=bHL1jbWjJUc" target="_blank">YouTube: Foundry IQ Portal Demo</a></li>
+<li><strong>How to Deploy Azure AI Agent in Microsoft Teams</strong><br><a href="https://www.youtube.com/watch?v=HU5sAsD1DYw" target="_blank">YouTube: Deploy AI Agent in Teams</a></li>
+</ol>
+</div>
+
+</div></section>
+<footer class="footer">
+<div class="wrap">
+<p>SharePoint + Microsoft Foundry: AI Knowledge Accelerator | Research compiled April 2026</p>
+<p style="margin-top:6px;opacity:.6">Based on publicly available official Microsoft documentation. Features marked Preview may change before GA.</p>
+</div>
+</footer>
+
+<script>
+// Tab switching
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const tabs = btn.closest('.tabs');
+    tabs.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    tabs.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    const panel = document.getElementById(btn.dataset.tab);
+    if(panel) panel.classList.add('active');
+  });
+});
+
+// Scroll animations with IntersectionObserver
+const obs = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if(e.isIntersecting) {
+      e.target.classList.add('visible');
+      obs.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+document.querySelectorAll('.fade-in').forEach(el => obs.observe(el));
+
+// Active nav link on scroll
+const sections = document.querySelectorAll('section[id]');
+const navLinks = document.querySelectorAll('.nav-links a');
+window.addEventListener('scroll', () => {
+  let current = '';
+  sections.forEach(s => {
+    if(window.scrollY >= s.offsetTop - 100) current = s.id;
+  });
+  navLinks.forEach(a => {
+    a.classList.remove('active');
+    if(a.getAttribute('href') === '#' + current) a.classList.add('active');
+  });
+}, { passive: true });
+
+// Smooth scroll for nav links
+document.querySelectorAll('.nav-links a').forEach(a => {
+  a.addEventListener('click', e => {
+    e.preventDefault();
+    const target = document.querySelector(a.getAttribute('href'));
+    if(target) target.scrollIntoView({ behavior: 'smooth' });
+  });
+});
+</script>
+</body>
+</html>
