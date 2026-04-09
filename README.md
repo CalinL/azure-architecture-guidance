@@ -83,7 +83,7 @@ pip install -r requirements.txt
 mkdocs serve
 ```
 
-See [mkdocs.yml](mkdocs.yml) and [.github/workflows/deploy-docs.yml](.github/workflows/deploy-docs.yml) for configuration.
+See `mkdocs.yml` and `.github/workflows/deploy-docs.yml` for configuration.
 
 ## License
 
