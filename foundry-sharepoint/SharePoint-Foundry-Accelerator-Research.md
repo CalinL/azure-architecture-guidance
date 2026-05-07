@@ -1,6 +1,6 @@
 # SharePoint + Microsoft Foundry: AI Knowledge Accelerator -- Deep Research & Recommendations
 
-> **Author:** Research compiled April 2026  
+> **Author:** Research compiled May 2026  
 > **Status:** Deep-dive analysis with recommended architectures  
 > **Peer-reviewed by:** GPT-5.2 (fact-check), Claude Sonnet 4.5 (architecture), Claude Sonnet 4 (completeness)
 
@@ -82,7 +82,7 @@ Organizations store critical knowledge across SharePoint -- sites, pages, docume
 | **Azure subscription** | Pay-as-you-go or Enterprise Agreement |
 | **Microsoft 365** | E3 or E5 (for SharePoint Online content) |
 | **M365 Copilot license** | Required for remote SharePoint queries via Copilot Retrieval API; OR use pay-as-you-go at $0.10/API call (Preview). NOT required if using indexed approach via Azure AI Search. |
-| **Azure OpenAI access** | Approved Azure OpenAI resource with GPT-4o deployment |
+| **Azure OpenAI access** | Approved Azure OpenAI resource with a GPT-5.1 deployment (or GPT-5 / GPT-5-mini for cost-optimized scenarios) |
 | **Entra ID** | App registrations for authentication (OBO flow for identity passthrough) |
 
 ### Azure RBAC Roles Required
@@ -214,7 +214,7 @@ START: Do you need a SharePoint Q&A agent?
           v            v            v
 +--------------+ +-----------+ +------------------+
 |  Foundry IQ  | | Cosmos DB | |  Azure OpenAI    |
-|  Knowledge   | | (optional | |  (GPT-4o model)  |
+|  Knowledge   | | (optional | |  (GPT-5.1 model) |
 |  Base        | |  history) | |                  |
 +------+-------+ +-----------+ +------------------+
        |
@@ -236,7 +236,7 @@ START: Do you need a SharePoint Q&A agent?
 - (+) Pay-as-you-go, no platform fee for Foundry Agent Service itself
 - (+) Foundry Agent Service includes built-in thread/conversation management
 
-> **Caveats (verified April 2026):**
+> **Caveats (verified May 2026):**
 > - Published agents currently do NOT support citations in Teams (Preview limitation)
 > - The SharePoint tool (Copilot Retrieval API) does NOT work when agent is published to Teams; use Foundry IQ indexed knowledge sources instead
 > - Foundry Agent Service does not support per-request headers for MCP tools (Preview limitation); for per-user auth, consider Azure OpenAI Responses API
@@ -247,7 +247,7 @@ START: Do you need a SharePoint Q&A agent?
 | Foundry Agent Service | Agent runtime & orchestration |
 | Foundry IQ Knowledge Base | Multi-source indexed retrieval over SharePoint |
 | Azure AI Search | Index storage, hybrid search, ACL enforcement |
-| Azure OpenAI (GPT-4o) | LLM for response generation |
+| Azure OpenAI (GPT-5.1) | LLM for response generation |
 | Azure Bot Service | Channel bridge (Teams + Web) |
 | M365 Agents SDK | Teams-native bot framework |
 | Cosmos DB (optional) | Persistent conversation history & Q&A analytics (add when needed) |
@@ -507,14 +507,16 @@ Foundry IQ exposes the `knowledge_base_retrieve` MCP tool. Agents call this tool
 - Return grounded answers with document citations
 
 ```python
-# Example: Create agent with Foundry IQ knowledge base
+# Example (illustrative): Create agent with Foundry IQ knowledge base
+# `knowledge_base_mcp_tool` is a placeholder for the configured MCP tool
+# definition that points to your Foundry IQ knowledge base.
 from azure.ai.projects import AIProjectClient
 
 client = AIProjectClient(endpoint="...", credential=credential)
 agent = client.agents.create_agent(
-    model="gpt-4o",
+    model="gpt-5.1",  # deployment name; GPT-5 series requires Azure OpenAI v1 API
     instructions="Use the knowledge base tool to answer user questions...",
-    tools=[knowledge_base_mcp_tool]
+    tools=[knowledge_base_mcp_tool],
 )
 ```
 
@@ -620,7 +622,7 @@ User -> Teams -> Azure Bot Service -> Foundry Agent -> Foundry IQ -> SharePoint
     { "title": "HR Policy 2026", "url": "https://sp.company.com/...", "snippet": "..." }
   ],
   "feedback": { "rating": "thumbs_up", "correction": null },
-  "metadata": { "model": "gpt-4o", "tokens_used": 1250 }
+  "metadata": { "model": "gpt-5.1", "tokens_used": 1250 }
 }
 ```
 
@@ -680,7 +682,7 @@ For SharePoint content retrieval to respect per-user permissions, the agent must
 | Component | Pricing Model | Notes |
 |---|---|---|
 | **Foundry Agent Service** | No platform fee; pay for consumed resources | You pay for model tokens, tools, and connected services |
-| **Azure OpenAI (GPT-4o)** | Per 1K tokens (input/output) | Varies by model and region; see [Azure OpenAI pricing](https://azure.microsoft.com/en-us/pricing/details/cognitive-services/openai-service/) |
+| **Azure OpenAI (GPT-5.1)** | Per 1K tokens (input/output) | Varies by model and region; see [Azure OpenAI pricing](https://azure.microsoft.com/en-us/pricing/details/cognitive-services/openai-service/) |
 | **Azure AI Search** | Tier-based (Free -> S3 HD) | Free tier for PoC (50MB); Standard tiers per Search Unit, region-dependent; see [pricing page](https://azure.microsoft.com/en-us/pricing/details/search/) |
 | **Foundry file search storage** | Per GB/day of vector storage (first 1GB free) | Listed under "Tools" on Foundry pricing page, not Foundry IQ specifically |
 | **Cosmos DB** | RU/s + storage | Free Tier: 1000 RU/s + 25 GB (1 account per subscription, lifetime); see [free tier details](https://learn.microsoft.com/en-us/azure/cosmos-db/free-tier) |
@@ -691,7 +693,7 @@ For SharePoint content retrieval to respect per-user permissions, the agent must
 
 ### Cost Optimization Tips
 1. **Start with Free tiers** -- Azure AI Search Free, Cosmos DB Free Tier (1000 RU/s + 25GB), Foundry IQ free token allocation
-2. **Use GPT-4o-mini** for simpler queries, GPT-4o for complex ones
+2. **Use GPT-5-mini** for simpler queries, GPT-5.1 for complex ones (note: GPT-5.1 defaults `reasoning_effort` to `none`; raise it for harder questions)
 3. **Cache frequent Q&A** in Cosmos DB to reduce model calls
 4. **Use indexed SharePoint** (via Foundry IQ) to avoid per-user Copilot license requirements
 5. **Consider pay-as-you-go** for Copilot Retrieval API ($0.10/call, Preview) if user volume is low
@@ -709,7 +711,7 @@ For SharePoint content retrieval to respect per-user permissions, the agent must
 
 ## Known Limitations & Preview Caveats
 
-> **As of April 2026, several components are in Preview. Review these limitations before committing to an architecture.**
+> **As of May 2026, several components are in Preview. Review these limitations before committing to an architecture.**
 
 | Limitation | Impact | Source |
 |---|---|---|
@@ -863,7 +865,7 @@ Key corrections applied:
 
 ---
 
-*This research is based on publicly available official Microsoft documentation (learn.microsoft.com), verified GitHub repositories, and Microsoft community resources as of April 2026. Features marked as Preview may change before General Availability. Always verify current pricing and feature availability on the official Azure and Microsoft 365 pricing pages.*
+*This research is based on publicly available official Microsoft documentation (learn.microsoft.com), verified GitHub repositories, and Microsoft community resources as of May 2026. Features marked as Preview may change before General Availability. Always verify current pricing and feature availability on the official Azure and Microsoft 365 pricing pages.*
 
 ---
 
@@ -919,22 +921,22 @@ Key corrections applied:
 16. **Microsoft Copilot Studio -- Overview**
     https://learn.microsoft.com/en-us/microsoft-copilot-studio/
 
-18. **Microsoft 365 Copilot -- Extensibility Overview**  
+17. **Microsoft 365 Copilot -- Extensibility Overview**  
     https://learn.microsoft.com/en-us/microsoft-365-copilot/extensibility/
 
-19. **Microsoft 365 Copilot -- Retrieval API Overview**  
+18. **Microsoft 365 Copilot -- Retrieval API Overview**  
     https://learn.microsoft.com/en-us/microsoft-365-copilot/extensibility/api-reference/retrieval-api-overview
 
-20. **Microsoft 365 Copilot -- Pay-as-You-Go Retrieval (Preview)**  
+19. **Microsoft 365 Copilot -- Pay-as-You-Go Retrieval (Preview)**  
     https://learn.microsoft.com/en-us/microsoft-365-copilot/extensibility/api/ai-services/retrieval/paygo-retrieval
 
-21. **Semantic Indexing for Microsoft 365 Copilot**  
+20. **Semantic Indexing for Microsoft 365 Copilot**  
     https://learn.microsoft.com/en-us/microsoftsearch/semantic-index-for-copilot
 
-22. **Teams SDK (Teams AI Library) -- Overview**  
+21. **Teams SDK (Teams AI Library) -- Overview**  
     https://learn.microsoft.com/en-us/microsoftteams/platform/teams-sdk/
 
-23. **Azure OpenAI Responses API**  
+22. **Azure OpenAI Responses API**  
     https://learn.microsoft.com/en-us/azure/ai-foundry/openai/how-to/responses
 
 23. **SharePoint Developer -- GitHub Repositories**  

@@ -115,7 +115,7 @@ ul.anti .material-icons-outlined{color:var(--warn);font-size:18px;flex-shrink:0;
 <header class="hero"><div class="wrap">
 <div class="subtitle">Deep Research &amp; Recommendations</div>
 <h1>SharePoint + Microsoft Foundry<br>AI Knowledge Accelerator</h1>
-<p class="meta">Research compiled April 2026 | Peer-reviewed by GPT-5.2, Claude Sonnet 4.5, Claude Sonnet 4</p>
+<p class="meta">Research compiled May 2026 | Peer-reviewed by GPT-5.2, Claude Sonnet 4.5, Claude Sonnet 4</p>
 </div></header>
 
 <div class="wrap"><div class="stats">
@@ -166,7 +166,7 @@ ul.anti .material-icons-outlined{color:var(--warn);font-size:18px;flex-shrink:0;
 <tr><td>Azure subscription</td><td>Pay-as-you-go or Enterprise Agreement</td></tr>
 <tr><td>Microsoft 365</td><td>E3 or E5 (for SharePoint Online content)</td></tr>
 <tr><td>M365 Copilot license</td><td>Required for remote SP queries via Copilot Retrieval API; OR pay-as-you-go $0.10/call (Preview). NOT required if using indexed approach.</td></tr>
-<tr><td>Azure OpenAI access</td><td>Approved Azure OpenAI resource with GPT-4o deployment</td></tr>
+<tr><td>Azure OpenAI access</td><td>Approved Azure OpenAI resource with a GPT-5.1 deployment (or GPT-5 / GPT-5-mini for cost-optimized scenarios)</td></tr>
 <tr><td>Entra ID</td><td>App registrations for authentication (OBO flow)</td></tr>
 </tbody></table></div>
 
@@ -309,7 +309,7 @@ ul.anti .material-icons-outlined{color:var(--warn);font-size:18px;flex-shrink:0;
 <!-- Three boxes -->
 <rect x="170" y="274" width="160" height="50" rx="8" fill="#cddc3a"/><text x="250" y="296" text-anchor="middle" fill="#01233f" font-size="11" font-weight="bold">Foundry IQ</text><text x="250" y="312" text-anchor="middle" fill="#01233f" font-size="9">Knowledge Base</text>
 <rect x="330" y="274" width="140" height="50" rx="8" fill="#73c4ef"/><text x="400" y="296" text-anchor="middle" fill="#01233f" font-size="11" font-weight="bold">Cosmos DB</text><text x="400" y="312" text-anchor="middle" fill="#01233f" font-size="9">(optional history)</text>
-<rect x="490" y="274" width="140" height="50" rx="8" fill="#01233f"/><text x="560" y="296" text-anchor="middle" fill="#fff" font-size="11" font-weight="bold">Azure OpenAI</text><text x="560" y="312" text-anchor="middle" fill="rgba(255,255,255,.7)" font-size="9">GPT-4o</text>
+<rect x="490" y="274" width="140" height="50" rx="8" fill="#01233f"/><text x="560" y="296" text-anchor="middle" fill="#fff" font-size="11" font-weight="bold">Azure OpenAI</text><text x="560" y="312" text-anchor="middle" fill="rgba(255,255,255,.7)" font-size="9">GPT-5.1</text>
 <!-- Arrow from IQ to Search -->
 <line x1="250" y1="324" x2="250" y2="358" stroke="#064dd9" stroke-width="2" marker-end="url(#a1)"/>
 <!-- AI Search block -->
@@ -330,7 +330,7 @@ ul.anti .material-icons-outlined{color:var(--warn);font-size:18px;flex-shrink:0;
 <li style="color:#318500"><span style="color:var(--tx)">(+) Pay-as-you-go, no platform fee</span></li>
 <li style="color:#318500"><span style="color:var(--tx)">(+) Built-in thread/conversation management</span></li>
 </ul>
-<div class="warn-box" style="margin-top:14px"><strong>Caveats (April 2026):</strong> Published agents do NOT support citations in Teams. The SharePoint tool does NOT work in Teams-published agents; use Foundry IQ indexed sources instead. Foundry Agent Service does not support per-request MCP headers; for per-user auth, consider Azure OpenAI Responses API.</div>
+<div class="warn-box" style="margin-top:14px"><strong>Caveats (May 2026):</strong> Published agents do NOT support citations in Teams. The SharePoint tool does NOT work in Teams-published agents; use Foundry IQ indexed sources instead. Foundry Agent Service does not support per-request MCP headers; for per-user auth, consider Azure OpenAI Responses API.</div>
 
 <h4>Key Components</h4>
 <div class="tbl-wrap"><table>
@@ -339,7 +339,7 @@ ul.anti .material-icons-outlined{color:var(--warn);font-size:18px;flex-shrink:0;
 <tr><td>Foundry Agent Service</td><td>Agent runtime &amp; orchestration</td></tr>
 <tr><td>Foundry IQ Knowledge Base</td><td>Multi-source indexed retrieval over SharePoint</td></tr>
 <tr><td>Azure AI Search</td><td>Index storage, hybrid search, ACL enforcement</td></tr>
-<tr><td>Azure OpenAI (GPT-4o)</td><td>LLM for response generation</td></tr>
+<tr><td>Azure OpenAI (GPT-5.1)</td><td>LLM for response generation</td></tr>
 <tr><td>Azure Bot Service</td><td>Channel bridge (Teams + Web)</td></tr>
 <tr><td>M365 Agents SDK</td><td>Teams-native bot framework</td></tr>
 <tr><td>Cosmos DB (optional)</td><td>Persistent history &amp; Q&amp;A analytics</td></tr>
@@ -623,7 +623,7 @@ ul.anti .material-icons-outlined{color:var(--warn);font-size:18px;flex-shrink:0;
     { "title": "HR Policy 2026", "url": "https://sp.company.com/...", "snippet": "..." }
   ],
   "feedback": { "rating": "thumbs_up", "correction": null },
-  "metadata": { "model": "gpt-4o", "tokens_used": 1250 }
+  "metadata": { "model": "gpt-5.1", "tokens_used": 1250 }
 }</code></pre>
 
 <h3 class="fade-in" style="color:var(--dark);margin:24px 0 12px">Q&amp;A Caching &amp; Analytics Design</h3>
@@ -672,7 +672,7 @@ ul.anti .material-icons-outlined{color:var(--warn);font-size:18px;flex-shrink:0;
 
 <section class="sec" id="limits"><div class="wrap">
 <div class="sec-hd fade-in"><div class="bar"></div><span class="material-icons-outlined">warning</span><h2>Known Limitations &amp; Preview Caveats</h2></div>
-<div class="warn-box fade-in">As of April 2026, several components are in Preview. Review these limitations before committing to an architecture.</div>
+<div class="warn-box fade-in">As of May 2026, several components are in Preview. Review these limitations before committing to an architecture.</div>
 <div class="tbl-wrap fade-in"><table>
 <thead><tr><th>Limitation</th><th>Impact</th><th>Source</th></tr></thead>
 <tbody>
@@ -694,7 +694,7 @@ ul.anti .material-icons-outlined{color:var(--warn);font-size:18px;flex-shrink:0;
 <thead><tr><th>Component</th><th>Pricing Model</th><th>Notes</th></tr></thead>
 <tbody>
 <tr><td>Foundry Agent Service</td><td>No platform fee</td><td>Pay for model tokens, tools, connected services</td></tr>
-<tr><td>Azure OpenAI (GPT-4o)</td><td>Per 1K tokens</td><td>Varies by model and region</td></tr>
+<tr><td>Azure OpenAI (GPT-5.1)</td><td>Per 1K tokens</td><td>Varies by model and region</td></tr>
 <tr><td>Azure AI Search</td><td>Tier-based (Free to S3 HD)</td><td>Free tier: 50MB for PoC</td></tr>
 <tr><td>Foundry file search storage</td><td>Per GB/day (first 1GB free)</td><td>Under "Tools" on Foundry pricing page</td></tr>
 <tr><td>Cosmos DB</td><td>RU/s + storage</td><td>Free Tier: 1000 RU/s + 25 GB</td></tr>
@@ -708,7 +708,7 @@ ul.anti .material-icons-outlined{color:var(--warn);font-size:18px;flex-shrink:0;
 <div class="C r fade-in">
 <ol>
 <li><strong>Start with Free tiers</strong> -- Azure AI Search Free, Cosmos DB Free Tier, Foundry IQ free token allocation</li>
-<li><strong>Use GPT-4o-mini</strong> for simpler queries, GPT-4o for complex ones</li>
+<li><strong>Use GPT-5-mini</strong> for simpler queries, GPT-5.1 for complex ones (note: GPT-5.1 defaults <code>reasoning_effort</code> to <code>none</code>; raise it for harder questions)</li>
 <li><strong>Cache frequent Q&amp;A</strong> in Cosmos DB to reduce model calls</li>
 <li><strong>Use indexed SharePoint</strong> (Foundry IQ) to avoid per-user Copilot license requirements</li>
 <li><strong>Consider pay-as-you-go</strong> for Copilot Retrieval API if volume is low</li>
@@ -984,7 +984,7 @@ ul.anti .material-icons-outlined{color:var(--warn);font-size:18px;flex-shrink:0;
 </div></section>
 <footer class="footer">
 <div class="wrap">
-<p>SharePoint + Microsoft Foundry: AI Knowledge Accelerator | Research compiled April 2026</p>
+<p>SharePoint + Microsoft Foundry: AI Knowledge Accelerator | Research compiled May 2026</p>
 <p style="margin-top:6px;opacity:.6">Based on publicly available official Microsoft documentation. Features marked Preview may change before GA.</p>
 </div>
 </footer>
