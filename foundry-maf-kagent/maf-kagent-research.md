@@ -1,11 +1,11 @@
-# kagent vs. Microsoft Agent Framework (MAF)
+# Building and running agents on Azure: MAF, kagent, and Foundry Agent Service
 ## A Comparative Research Focused on Microsoft Foundry / Azure Integration
 
 > **Document date:** 2026-05-08
 >
 > **About this document:** This is a research summary comparing two open-source projects in the AI agent ecosystem. It was prepared with AI assistance under human guidance and is grounded in publicly available documentation (kagent.dev, the kagent GitHub repository, Microsoft Learn for Agent Framework and Foundry Agent Service, the Microsoft Agent Framework GitHub repository, the official MAF 1.0 GA announcement, the Foundry Agent Service Transparency Note, Microsoft Entra Agent ID documentation, and NuGet package metadata — all listed in §12). Both projects evolve quickly; verify version numbers, package names, and feature availability against the linked primary sources before making procurement, architecture, or licensing decisions.
 >
-> Scope: Compare **[kagent](https://kagent.dev/)** ([github.com/kagent-dev/kagent](https://github.com/kagent-dev/kagent)) and **[Microsoft Agent Framework (MAF)](https://learn.microsoft.com/en-us/agent-framework/)** ([github.com/microsoft/agent-framework](https://github.com/microsoft/agent-framework)) on how each integrates with the Microsoft Foundry / Azure ecosystem, with a particular focus on Foundry Agent Service interoperability, gaps, .NET support, and whether kagent can serve as a deployment substrate for MAF agents.
+> Scope: Compare **[Microsoft Agent Framework (MAF)](https://learn.microsoft.com/en-us/agent-framework/)** ([github.com/microsoft/agent-framework](https://github.com/microsoft/agent-framework)) and **[kagent](https://kagent.dev/)** ([github.com/kagent-dev/kagent](https://github.com/kagent-dev/kagent)) — a framework and a Kubernetes-native runtime — and show where **Foundry Agent Service** fits as a managed runtime alongside them. Particular focus on Foundry Agent Service interoperability, gaps, .NET support, and whether kagent can serve as a deployment substrate for MAF agents.
 
 ---
 
