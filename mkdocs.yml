@@ -67,6 +67,8 @@ nav:
     - Tracing & Observability: foundry/microsoft-foundry-tracing-guide.md
   - SharePoint + Foundry:
     - AI Knowledge Accelerator: foundry-sharepoint/SharePoint-Foundry-Accelerator-Research.md
+  - Foundry vs kagent vs MAF:
+    - kagent vs Microsoft Agent Framework: foundry-maf-kagent/maf-kagent-research.md
   - GPU & AI Models:
     - GPU Hosting Options: gpu-serverless/azure-gpu-hosting-open-source-models-guidance.md
   - Mission-Critical SaaS:
