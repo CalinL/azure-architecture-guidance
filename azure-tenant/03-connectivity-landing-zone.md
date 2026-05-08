@@ -2,6 +2,26 @@
 
 > **Related:** [README](./README.md) | [Management Landing Zone](./02-management-landing-zone.md) | [Application Landing Zone](./07-application-landing-zone.md)
 
+## Table of Contents
+
+1. [Overview](#overview)
+2. [Architecture](#architecture)
+3. [Network Topology Decision](#network-topology-decision)
+4. [IP Address Planning](#ip-address-planning)
+5. [Hub Virtual Network](#hub-virtual-network)
+6. [Network Security](#network-security)
+7. [DDoS Protection](#ddos-protection)
+8. [Private Endpoints](#private-endpoints)
+9. [Azure DNS Private Resolver](#azure-dns-private-resolver)
+10. [Azure Front Door](#azure-front-door)
+11. [Azure Bastion](#azure-bastion)
+12. [Cross-Region Connectivity](#cross-region-connectivity)
+13. [Network Monitoring](#network-monitoring)
+14. [Implementation Checklist](#implementation-checklist)
+15. [References](#references)
+
+---
+
 ## Overview
 
 The Connectivity Landing Zone provides the network foundation for the entire Azure environment. For a cloud-only SaaS startup, this is a simplified hub-spoke topology optimized for cost and operational efficiency.

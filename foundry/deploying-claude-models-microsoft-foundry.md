@@ -1,5 +1,26 @@
 # Deploying Claude Models in Microsoft Foundry
 
+## Table of Contents
+
+1. [Overview](#overview)
+2. [Prerequisites](#prerequisites)
+3. [Step 1: Enable Azure Marketplace Purchases](#step-1-enable-azure-marketplace-purchases)
+4. [Step 2: Register Marketplace Resource Providers](#step-2-register-marketplace-resource-providers)
+5. [Step 3: Create a Microsoft Foundry Project](#step-3-create-a-microsoft-foundry-project)
+6. [Step 4: Deploy a Claude Model](#step-4-deploy-a-claude-model)
+7. [Step 5: Verify Quota Allocation](#step-5-verify-quota-allocation)
+8. [Working with Claude Models](#working-with-claude-models)
+9. [Claude Model Capabilities](#claude-model-capabilities)
+10. [Troubleshooting](#troubleshooting)
+11. [Best Practices](#best-practices)
+12. [Responsible AI Considerations](#responsible-ai-considerations)
+13. [Agent Integration](#agent-integration)
+14. [References](#references)
+15. [Document Information](#document-information)
+16. [Changelog](#changelog)
+
+---
+
 ## Overview
 
 This guide provides comprehensive instructions for deploying and using Anthropic's Claude models in Microsoft Foundry. Claude models are frontier AI models useful for complex tasks such as coding, agents, financial analysis, research, and office tasks.

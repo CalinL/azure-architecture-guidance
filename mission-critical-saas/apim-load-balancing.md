@@ -1,5 +1,24 @@
 # Mission-Critical SaaS Architecture with Azure API Management and Global Load Balancing
 
+## Table of Contents
+
+1. [Executive Summary](#executive-summary)
+2. [Architecture Overview](#architecture-overview)
+3. [Traffic Flow Analysis](#traffic-flow-analysis)
+4. [Why Application Gateway is NOT Required](#why-application-gateway-is-not-required)
+5. [Architecture Decision: Front Door → APIM Direct Connection](#architecture-decision-front-door--apim-direct-connection)
+6. [Multi-Region Deployment Pattern](#multi-region-deployment-pattern)
+7. [Security Architecture](#security-architecture)
+8. [Locking Down APIM to Accept Only Front Door Traffic](#locking-down-apim-to-accept-only-front-door-traffic)
+9. [High Availability Configuration](#high-availability-configuration)
+10. [Cost Considerations](#cost-considerations)
+11. [Alternative Architecture: Redundant Ingress Path](#alternative-architecture-redundant-ingress-path)
+12. [Recommendations Summary](#recommendations-summary)
+13. [Implementation Checklist](#implementation-checklist)
+14. [References](#references)
+
+---
+
 ## Executive Summary
 
 This document provides architecture guidance for building a **mission-critical SaaS application** hosted on Azure with multi-regional deployment for high availability (HA) and disaster recovery (DR). The architecture leverages **Azure Front Door with WAF** for global load balancing and **Azure API Management (APIM)** as the API Gateway for microservices.

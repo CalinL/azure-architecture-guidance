@@ -2,6 +2,22 @@
 
 > **Related:** [README](./README.md) | [Terraform Implementation](./05-terraform-implementation.md) | [Application Landing Zone](./07-application-landing-zone.md)
 
+## Table of Contents
+
+1. [Overview](#overview)
+2. [Architecture](#architecture)
+3. [Workload Identity Federation (OIDC)](#workload-identity-federation-oidc)
+4. [GitHub Repository Structure](#github-repository-structure)
+5. [GitHub Environments](#github-environments)
+6. [GitHub Actions Workflows](#github-actions-workflows)
+7. [Secrets Management](#secrets-management)
+8. [Reusable Workflows](#reusable-workflows)
+9. [Workflow for Application Teams](#workflow-for-application-teams)
+10. [Security Considerations](#security-considerations)
+11. [References](#references)
+
+---
+
 ## Overview
 
 This document describes the GitHub Actions CI/CD pipeline for managing Azure Landing Zones with Terraform. The pipeline uses OpenID Connect (OIDC) Workload Identity Federation for secure, secretless authentication to Azure.

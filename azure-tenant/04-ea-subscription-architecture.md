@@ -2,6 +2,21 @@
 
 > **Related:** [README](./README.md) | [Terraform Implementation](./05-terraform-implementation.md) | [Application Landing Zone](./07-application-landing-zone.md)
 
+## Table of Contents
+
+1. [Overview](#overview)
+2. [Enterprise Agreement Integration](#enterprise-agreement-integration)
+3. [Management Group Hierarchy](#management-group-hierarchy)
+4. [Subscription Strategy](#subscription-strategy)
+5. [Subscription Vending](#subscription-vending)
+6. [Tagging Standards](#tagging-standards)
+7. [Naming Conventions](#naming-conventions)
+8. [Cost Allocation](#cost-allocation)
+9. [RBAC Strategy](#rbac-strategy)
+10. [References](#references)
+
+---
+
 ## Overview
 
 This document describes the Enterprise Agreement (EA) enrollment integration, management group hierarchy, subscription strategy, and tagging standards for the Azure tenant.

@@ -2,6 +2,21 @@
 
 > **Related:** [README](./README.md) | [Identity Landing Zone](./01-identity-landing-zone.md) | [Management Landing Zone](./02-management-landing-zone.md)
 
+## Table of Contents
+
+1. [Overview](#overview)
+2. [Compliance Framework Overview](#compliance-framework-overview)
+3. [SOC 2 Type II Control Mapping](#soc-2-type-ii-control-mapping)
+4. [ISO 27001 Control Mapping](#iso-27001-control-mapping)
+5. [Microsoft Defender for Cloud Configuration](#microsoft-defender-for-cloud-configuration)
+6. [Evidence Collection Strategy](#evidence-collection-strategy)
+7. [Multi-Region Data Residency](#multi-region-data-residency)
+8. [Audit Preparation](#audit-preparation)
+9. [Continuous Compliance Monitoring](#continuous-compliance-monitoring)
+10. [References](#references)
+
+---
+
 ## Overview
 
 This document provides compliance mappings for SOC 2 Type II and ISO 27001 controls to Azure services and configurations. It covers evidence collection strategies, regulatory compliance dashboard setup, and multi-region data residency considerations.

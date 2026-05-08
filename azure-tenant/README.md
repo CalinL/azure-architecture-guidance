@@ -2,6 +2,18 @@
 
 > **Documentation Phase** — This repository contains comprehensive guidance for setting up a greenfield Azure tenant for a SaaS startup. Code implementation will follow in a separate phase.
 
+## Table of Contents
+
+1. [Context](#context)
+2. [Architecture Overview](#architecture-overview)
+3. [Documentation Structure](#documentation-structure)
+4. [Framework References](#framework-references)
+5. [Quick Start](#quick-start)
+6. [Key Design Decisions](#key-design-decisions)
+7. [Contributing](#contributing)
+
+---
+
 ## Context
 
 | Attribute | Value |

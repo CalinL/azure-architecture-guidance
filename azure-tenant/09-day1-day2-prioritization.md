@@ -2,6 +2,20 @@
 
 > **Related:** [README](./README.md) | [All Documentation Files](#document-index)
 
+## Table of Contents
+
+1. [Overview](#overview)
+2. [Phase Overview](#phase-overview)
+3. [Day 1: Foundation (Weeks 1-4)](#day-1-foundation-weeks-1-4)
+4. [Day 2: Hardening (Weeks 5-12)](#day-2-hardening-weeks-5-12)
+5. [Implementation Decision Tree](#implementation-decision-tree)
+6. [Priority Definitions](#priority-definitions)
+7. [Quick Reference: What Goes Where](#quick-reference-what-goes-where)
+8. [Success Criteria](#success-criteria)
+9. [Document Index](#document-index)
+
+---
+
 ## Overview
 
 This document provides a phased rollout plan for implementing the Azure Landing Zone architecture. Day 1 focuses on establishing the foundational platform with minimal viable security controls. Day 2 focuses on hardening, optimization, and advanced capabilities.

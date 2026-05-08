@@ -1,5 +1,20 @@
 # Microsoft Foundry Portal: Private Networking Comparison
 
+## Table of Contents
+
+1. [New Foundry Portal vs. Classic Foundry Portal](#new-foundry-portal-vs-classic-foundry-portal)
+2. [Executive Summary](#executive-summary)
+3. [Key Limitation: New Foundry Portal Does Not Support Network Isolation](#key-limitation-new-foundry-portal-does-not-support-network-isolation)
+4. [Detailed Feature Comparison](#detailed-feature-comparison)
+5. [Workarounds for Network-Isolated Projects](#workarounds-for-network-isolated-projects)
+6. [Managed Virtual Network Limitations (Preview)](#managed-virtual-network-limitations-preview)
+7. [Network Architecture Comparison](#network-architecture-comparison)
+8. [Recommendations](#recommendations)
+9. [Official References](#official-references)
+10. [Changelog](#changelog)
+
+---
+
 ## New Foundry Portal vs. Classic Foundry Portal
 
 This document provides a comprehensive comparison of private networking capabilities between the **new Microsoft Foundry portal experience** and the **classic Foundry portal experience**.

@@ -2,6 +2,24 @@
 
 > **Related:** [README](./README.md) | [Connectivity Landing Zone](./03-connectivity-landing-zone.md) | [EA & Subscription Architecture](./04-ea-subscription-architecture.md)
 
+## Table of Contents
+
+1. [Overview](#overview)
+2. [Application Landing Zone Architecture](#application-landing-zone-architecture)
+3. [Subscription Baseline](#subscription-baseline)
+4. [Resource Group Structure](#resource-group-structure)
+5. [Network Configuration](#network-configuration)
+6. [Shared Resources Template](#shared-resources-template)
+7. [Compute Options](#compute-options)
+8. [Data Services](#data-services)
+9. [Tagging Requirements](#tagging-requirements)
+10. [Naming Convention Summary](#naming-convention-summary)
+11. [Sample Terraform Module](#sample-terraform-module)
+12. [Documentation Template for Application Teams](#documentation-template-for-application-teams)
+13. [Onboarding Checklist](#onboarding-checklist)
+
+---
+
 ## Overview
 
 This document provides a template and guidelines for application teams to deploy workloads into their landing zone subscriptions. The template includes baseline infrastructure, networking, security controls, and CI/CD patterns.

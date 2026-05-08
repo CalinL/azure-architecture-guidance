@@ -17,6 +17,21 @@ estimated_reading_time: 20
 
 > **Related:** [Connectivity Landing Zone](./03-connectivity-landing-zone.md) | [Application Landing Zone](./07-application-landing-zone.md) | [README](./README.md)
 
+## Table of Contents
+
+1. [Why DNS is the Backbone of Private Connectivity](#why-dns-is-the-backbone-of-private-connectivity)
+2. [Component Reference](#component-reference)
+3. [The Enterprise DNS Design Question](#the-enterprise-dns-design-question)
+4. [Architectural Patterns](#architectural-patterns)
+5. [Decision Matrix](#decision-matrix)
+6. [Role Summary of Each Component](#role-summary-of-each-component)
+7. [Implementation Checklist](#implementation-checklist)
+8. [Common Misconfigurations and How to Detect Them](#common-misconfigurations-and-how-to-detect-them)
+9. [Azure Landing Zone Policy Alignment](#azure-landing-zone-policy-alignment)
+10. [Microsoft Documentation References](#microsoft-documentation-references)
+
+---
+
 ## Why DNS is the Backbone of Private Connectivity
 
 Every private endpoint deployed in Azure depends on correct DNS resolution to route traffic privately. When an application connects to `mystorage.blob.core.windows.net`, one of two things happens:

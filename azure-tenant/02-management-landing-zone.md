@@ -2,6 +2,23 @@
 
 > **Related:** [README](./README.md) | [Identity Landing Zone](./01-identity-landing-zone.md) | [Compliance Baseline](./08-compliance-baseline.md)
 
+## Table of Contents
+
+1. [Overview](#overview)
+2. [Architecture](#architecture)
+3. [Resource Group Structure](#resource-group-structure)
+4. [Log Analytics Workspace](#log-analytics-workspace)
+5. [Microsoft Defender for Cloud](#microsoft-defender-for-cloud)
+6. [Azure Monitor](#azure-monitor)
+7. [Azure Policy](#azure-policy)
+8. [Cost Management](#cost-management)
+9. [Microsoft Sentinel (SIEM)](#microsoft-sentinel-siem)
+10. [Automation Account](#automation-account)
+11. [Resource Tagging](#resource-tagging)
+12. [References](#references)
+
+---
+
 ## Overview
 
 The Management Landing Zone provides centralized monitoring, security, governance, and cost management for the entire Azure environment. This subscription hosts shared platform services that support all workloads.

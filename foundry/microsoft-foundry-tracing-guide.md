@@ -14,6 +14,23 @@ keywords:
 estimated_reading_time: 12
 ---
 
+## Table of Contents
+
+1. [Overview](#overview)
+2. [Prerequisites](#prerequisites)
+3. [Enabling Tracing in the Foundry Portal](#enabling-tracing-in-the-foundry-portal)
+4. [Content Recording Flags](#content-recording-flags)
+5. [Instrumentation Setup by Path](#instrumentation-setup-by-path)
+6. [Framework Integrations](#framework-integrations)
+7. [Custom Spans and Attributes](#custom-spans-and-attributes)
+8. [Service Name Configuration](#service-name-configuration)
+9. [Recommendations](#recommendations)
+10. [Complete Environment Variables Reference](#complete-environment-variables-reference)
+11. [Using Datadog Instead of Azure Monitor](#using-datadog-instead-of-azure-monitor)
+12. [References](#references)
+
+---
+
 ## Overview
 
 Tracing in Microsoft Foundry provides visibility into AI application execution. You can use traces to diagnose inaccurate tool calls, misleading prompts, latency bottlenecks, and low-quality evaluation scores. Foundry uses [OpenTelemetry](https://opentelemetry.io/) as the telemetry standard and stores trace data in Azure Application Insights.

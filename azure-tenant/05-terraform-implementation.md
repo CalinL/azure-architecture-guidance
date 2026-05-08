@@ -2,6 +2,23 @@
 
 > **Related:** [README](./README.md) | [GitHub Actions CI/CD](./06-github-actions-cicd.md) | [EA & Subscription Architecture](./04-ea-subscription-architecture.md)
 
+## Table of Contents
+
+1. [Overview](#overview)
+2. [Implementation Approach](#implementation-approach)
+3. [Repository Structure](#repository-structure)
+4. [Terraform State Management](#terraform-state-management)
+5. [ALZ Module Configuration](#alz-module-configuration)
+6. [Variables Configuration](#variables-configuration)
+7. [Provider Configuration](#provider-configuration)
+8. [Subscription Vending Module](#subscription-vending-module)
+9. [Local Development](#local-development)
+10. [Import Existing Resources](#import-existing-resources)
+11. [Best Practices](#best-practices)
+12. [References](#references)
+
+---
+
 ## Overview
 
 This guide describes the Terraform implementation strategy for deploying Azure Landing Zones using the Azure Verified Modules and ALZ Terraform Accelerator. The implementation is optimized for a startup platform team managing a multi-region SaaS application.

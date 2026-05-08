@@ -2,6 +2,22 @@
 
 > **Related:** [README](./README.md) | [Management Landing Zone](./02-management-landing-zone.md) | [Compliance Baseline](./08-compliance-baseline.md)
 
+## Table of Contents
+
+1. [Overview](#overview)
+2. [Architecture](#architecture)
+3. [Microsoft Entra ID Tenant Configuration](#microsoft-entra-id-tenant-configuration)
+4. [Privileged Identity Management (PIM)](#privileged-identity-management-pim)
+5. [Conditional Access Policies](#conditional-access-policies)
+6. [Break-Glass Emergency Access Accounts](#break-glass-emergency-access-accounts)
+7. [Service Principal Governance](#service-principal-governance)
+8. [Access Reviews](#access-reviews)
+9. [Identity Diagnostic Settings](#identity-diagnostic-settings)
+10. [Compliance Mapping](#compliance-mapping)
+11. [References](#references)
+
+---
+
 ## Overview
 
 The Identity Landing Zone establishes the security foundation for your Azure tenant. This document covers Microsoft Entra ID configuration, privileged access management, and identity governance aligned with SOC 2 Type II and ISO 27001 requirements.
