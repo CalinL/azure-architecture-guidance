@@ -25,28 +25,9 @@ Starting in August 2025, Azure OpenAI introduced the **v1 API**, which eliminate
 
 > **Important:** With the v1 API, you use `OpenAI()` (not `AzureOpenAI()`) as the client class, and pass your Azure endpoint as `base_url`. The `model` parameter must match your **deployment name** (not the model name) if they differ. The endpoint format `https://YOUR-RESOURCE-NAME.openai.azure.com/openai/v1/` works for both Foundry (classic) and the new Foundry portal. The alternate format `https://YOUR-RESOURCE-NAME.services.ai.azure.com/openai/v1/` is also accepted.
 
-### Python — API Key Authentication
+### Python — Microsoft Entra ID Authentication (Recommended)
 
-```python
-import os
-from openai import OpenAI
-
-client = OpenAI(
-    api_key=os.getenv("AZURE_OPENAI_API_KEY"),
-    base_url="https://YOUR-RESOURCE-NAME.openai.azure.com/openai/v1/"
-)
-
-# Using the Responses API (recommended for GPT-5 series)
-response = client.responses.create(
-    model="gpt-5.1",  # Use your deployment name
-    input="Explain quantum computing in simple terms.",
-    reasoning={"effort": "medium"}
-)
-
-print(response.output_text)
-```
-
-### Python — Microsoft Entra ID Authentication
+> **Best practice:** Microsoft recommends **keyless authentication with Microsoft Entra ID** for production. It avoids storing long-lived secrets and supports automatic token refresh built into the `OpenAI()` client. Assign the **Cognitive Services OpenAI User** role to your identity. See [Azure RBAC for Azure OpenAI](https://learn.microsoft.com/azure/ai-foundry/openai/how-to/role-based-access-control).
 
 ```python
 from openai import OpenAI
@@ -59,6 +40,29 @@ token_provider = get_bearer_token_provider(
 client = OpenAI(
     base_url="https://YOUR-RESOURCE-NAME.openai.azure.com/openai/v1/",
     api_key=token_provider
+)
+
+# Using the Responses API (recommended for GPT-5 series)
+response = client.responses.create(
+    model="gpt-5.1",  # Use your deployment name
+    input="Explain quantum computing in simple terms.",
+    reasoning={"effort": "medium"}
+)
+
+print(response.output_text)
+```
+
+### Python — API Key Authentication
+
+> **Security note:** API keys aren't recommended for production because they're less secure than Microsoft Entra ID. If you must use a key, never hard-code it — store it in [Azure Key Vault](https://learn.microsoft.com/azure/key-vault/general/apps-api-keys-secrets) and load it at runtime (as shown below via an environment variable).
+
+```python
+import os
+from openai import OpenAI
+
+client = OpenAI(
+    api_key=os.getenv("AZURE_OPENAI_API_KEY"),
+    base_url="https://YOUR-RESOURCE-NAME.openai.azure.com/openai/v1/"
 )
 
 response = client.responses.create(
