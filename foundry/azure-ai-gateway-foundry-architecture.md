@@ -36,6 +36,7 @@
   - [4.4 Rate-Limit Response Headers](#44-rate-limit-response-headers-surfacemonitor-these)
   - [4.5 JSON Error Body Shapes](#45-json-error-body-shapes)
   - [4.6 Native Spillover Signals (PTU → Standard)](#46-native-spillover-signals-ptu--standard)
+  - [4.7 Retry & Backoff Policy for Retriable Errors](#47-retry--backoff-policy-for-retriable-errors)
 - [5. APIM GenAI Policies — Best Practices](#5-apim-genai-policies--best-practices)
   - [5.1 `llm-token-limit`](#51-llm-token-limit--tpm-rate-limit--quota-fair-share--chargeback)
   - [5.2 `llm-emit-token-metric`](#52-llm-emit-token-metric--observability--finops)
@@ -364,6 +365,82 @@ Content filter with categories (`ResponsibleAIPolicyViolation`) exposes `innerer
 ### 4.6 Native Spillover Signals (PTU → Standard)
 
 Spillover triggers on PTU `429`, `400` (context limit), `500`, `503`. Confirm via response headers: `x-ms-spillover-from-deployment`, `x-ms-deployment-name` (who actually served), `x-ms-spillover-error` (originating PTU code).<sup>[10](#ref-10)</sup>
+
+### 4.7 Retry & Backoff Policy for Retriable Errors
+
+For the retriable set — **`429` (all sub-types *except* terminal `QuotaExceeded`), `500`, `502`, `503`, `504`, `408`, and `404 DeploymentNotFound` (recently-created only)** — implement retries at the gateway using the APIM `<retry>` policy in the `<backend>` section. A complete, reusable, copy-paste policy (validated as well-formed XML) is provided in **[`apim-retry-backoff-policy.xml`](./apim-retry-backoff-policy.xml)**.
+
+**Best-practice design (what the policy does and why):**
+
+| Practice | Rationale |
+|---|---|
+| **Honor server timing first** — read `retry-after-ms` (ms) then `retry-after` (s), clamped to 1–60s | Azure OpenAI knows exactly when capacity frees up; obeying it recovers PTU utilization fastest and avoids hammering.<sup>[9](#ref-9)</sup> |
+| **Decorrelated-jitter exponential backoff** when no header — base 1s, cap ~30s | Prevents synchronized retry storms ("thundering herd") across many clients; jitter spreads load. |
+| **Retry only the retriable codes** — exact status-code allow-list | Never retry terminal `400/401/403/413/415/422`; they fail identically and waste quota. |
+| **`429` excludes `QuotaExceeded`** — inspect body for `QuotaExceeded`/`insufficient_quota` | Subscription-quota exhaustion is **terminal** — retrying just burns latency; only rate/capacity `429`s are retriable.<sup>[9](#ref-9)</sup> |
+| **404 is conditional** — retry **only** if the body contains `DeploymentNotFound` | A just-created deployment needs ~5 min to initialize; `model_not_found`/`ResourceNotFound` are permanent and must **not** retry.<sup>[9](#ref-9)</sup> |
+| **PTU-first, PAYG-on-retry** — `attempt 1 → PTU`, `attempt ≥ 2 → PAYG pool` | Reserved PTU for the happy path, pay-as-you-go only for overflow.<sup>[21](#ref-21)</sup> ⚠️ Because `<retry>` runs its children **once before** evaluating the condition,<sup>[13](#ref-13)</sup> route by an **`attemptCount`** (1-based) — *not* a "retry counter", or the very first request would skip PTU. |
+| **`buffer-request-body="true"`** on `forward-request` | Required so the same request can be replayed to a different backend. |
+| **`first-fast-retry="false"`** | Ensures the computed backoff interval is always applied (no immediate first retry that would just re-hit a throttled backend). |
+| **Bounded attempts** (`count="4"`) + final shaping in **`<outbound>`** → `503 + Retry-After` | Fail fast and push an outer-backoff hint to the client. Shaping lives in `<outbound>` (**not** `<on-error>`) because backend `429/5xx` are *normal responses* — with `forward-request` default `fail-on-error-status-code="false"` they never raise a policy error.<sup>[13](#ref-13)</sup> |
+| **Emit `x-gateway-retry-count`** (= `attemptCount − 1`) response header | Observability — surface retry pressure to callers and dashboards. |
+
+**Core structure** (see the file for the fully-escaped, production version):
+
+```xml
+<backend>
+  <retry
+      count="4"
+      first-fast-retry="false"
+      condition="@{
+          var r = context.Response;
+          if (r == null) return false;                       // transport errors -> on-error
+          int sc = r.StatusCode;
+          if (sc == 429) {                                   // retriable EXCEPT quota exhaustion
+              var b = r.Body?.As<string>(preserveContent: true) ?? string.Empty;
+              return !(b.Contains(&quot;QuotaExceeded&quot;) || b.Contains(&quot;insufficient_quota&quot;));
+          }
+          if (sc == 408 || sc == 500 || sc == 502 || sc == 503 || sc == 504) return true;
+          if (sc == 404) {
+              var b = r.Body?.As<string>(preserveContent: true) ?? string.Empty;
+              return b.Contains(&quot;DeploymentNotFound&quot;);        // recently-created only
+          }
+          return false;
+      }"
+      interval="@{
+          var r = context.Response;
+          int attempt = context.Variables.GetValueOrDefault<int>(&quot;attemptCount&quot;, 1);
+          if (r != null) {                                   // 1) honor server timing (clamp 1..60s)
+              var raMs = r.Headers.GetValueOrDefault(&quot;retry-after-ms&quot;, &quot;&quot;);
+              if (!string.IsNullOrEmpty(raMs) && int.TryParse(raMs, out var ms))
+                  return Math.Max(1, Math.Min((int)Math.Ceiling(ms/1000.0), 60));
+              var raS = r.Headers.GetValueOrDefault(&quot;retry-after&quot;, &quot;&quot;);
+              if (!string.IsNullOrEmpty(raS) && int.TryParse(raS, out var s))
+                  return Math.Max(1, Math.Min(s, 60));
+          }
+          var rnd = new Random(Guid.NewGuid().GetHashCode()); // 2) decorrelated-jitter backoff
+          int expo = (int)Math.Min(30.0, Math.Pow(2, Math.Max(0, attempt - 1)));
+          return Math.Max(1, rnd.Next(1, expo + 1));
+      }">
+    <set-variable name="attemptCount" value="@(context.Variables.GetValueOrDefault<int>(&quot;attemptCount&quot;,0)+1)" />
+    <!-- attempt 1 -> PTU (primary); attempt 2+ -> PAYG pool (spillover) -->
+    <set-backend-service backend-id="@(context.Variables.GetValueOrDefault<int>(&quot;attemptCount&quot;,1) == 1 ? &quot;aoai-ptu-backend&quot; : &quot;aoai-payg-pool&quot;)" />
+    <forward-request buffer-request-body="true" timeout="120" />
+  </retry>
+</backend>
+```
+
+> **Layering with native circuit breakers (§3.2–3.3):** Use the `<retry>` policy **together with** backend-pool circuit breakers, not instead of them. The circuit breaker (with `acceptRetryAfter: true`) keeps a throttled PTU backend *open* for the `Retry-After` duration so subsequent requests skip it entirely, while `<retry>` gives the *current in-flight* request transparent failover. Also keep a **client-side** retry honoring `retry-after-ms` — because APIM circuit-breaker state is per-worker-node, a burst can still surface intermittent `429`s (§3.3).
+
+**Production guardrails (must-address before rollout):**
+
+- **Streaming / SSE:** Do **not** apply transparent retries once response bytes have reached the client. For streamed operations set `buffer-response="false"` and rely on client-side retry — a mid-stream failover would corrupt the token stream.
+- **Idempotency & cost:** Every retry re-submits the prompt → **duplicate token spend** and a *different* completion. Restrict gateway retries to safe/idempotent operations and propagate a correlation/request ID for de-duplication.
+- **Request-body buffering limits:** `buffer-request-body="true"` holds the full prompt in memory to enable replay — cap request size for very large prompts/uploads to protect gateway memory.
+- **Total latency budget:** `count=4` × `timeout=120s` **plus** backoff waits can create very long request lifetimes. Set an end-to-end budget and tune `count` / per-attempt `timeout` accordingly.
+- **Transport failures:** `context.Response == null` cases (connect timeout, DNS) skip the status-based condition and fall to `<on-error>` (returned as `503`). Decide explicitly whether these should also retry.
+
+> **Peer-reviewed:** This policy was validated by an independent model (GPT-5.5). Fixes applied: PTU-first ordering (was routing the first attempt to PAYG), `429 QuotaExceeded` exclusion, final-response shaping moved from `<on-error>` to `<outbound>`, interval lower-bound clamp, and better-seeded jitter.
 
 ---
 

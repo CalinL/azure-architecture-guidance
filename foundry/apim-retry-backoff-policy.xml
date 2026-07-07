@@ -1,0 +1,154 @@
+<!--
+  ============================================================================
+  APIM AI Gateway  ::  Retry and Backoff policy for RETRIABLE Foundry / Azure OpenAI errors
+  ............................................................................
+  Retries (with backoff):
+    429  (EXCEPT terminal QuotaExceeded / insufficient_quota)
+    500  502  503  504  408
+    404  ONLY when body contains "DeploymentNotFound" (recently created deployment)
+  NOT retried (terminal):
+    400 content_filter / context_length / InvalidRequest, 401, 403,
+    404 model_not_found / ResourceNotFound, 413, 415, 422, 429 QuotaExceeded.
+  ............................................................................
+  Execution model (per APIM docs): the <retry> block runs its child policies
+  ONCE, then evaluates <condition>; if true it waits <interval> and re-runs the
+  children. Therefore attemptCount==1 is the FIRST (non-retry) attempt.
+    attemptCount == 1  ->  PTU backend       (primary)
+    attemptCount  &gt;= 2  ->  PAYG pool         (spillover on every retry)
+  Backoff (interval, evaluated per attempt):
+    1. Honor server timing  ::  retry-after-ms (ms) then retry-after (s), clamped 1..60s.
+    2. Else decorrelated jitter exponential backoff  ::  base 1s, cap 30s.
+  Final failure shaping is done in <outbound> (NOT <on-error>), because backend
+  429/5xx are normal responses; forward-request has fail-on-error-status-code
+  = false, so they never raise a policy error.
+  ............................................................................
+  Escaping: inside @{...} expressions the XML metacharacters are escaped
+  (&lt; &gt; &amp;&amp;).  buffer-request-body="true" so the request can be replayed.
+  ============================================================================
+-->
+<policies>
+    <inbound>
+        <base />
+        <!-- Managed identity to Azure OpenAI / Foundry (no keys in clients).
+             Same audience works for both PTU and PAYG backends. -->
+        <authentication-managed-identity resource="https://cognitiveservices.azure.com"
+            output-token-variable-name="mi-token" ignore-error="false" />
+        <set-header name="Authorization" exists-action="override">
+            <value>@("Bearer " + (string)context.Variables["mi-token"])</value>
+        </set-header>
+        <!-- Attempt counter: 1 = first try (PTU), 2+ = retries (PAYG). -->
+        <set-variable name="attemptCount" value="@(0)" />
+    </inbound>
+
+    <backend>
+        <!--
+          count             : max retry attempts (total tries = count + 1)
+          first-fast-retry  : false so the backoff interval is always honored
+          interval          : expression re-evaluated per attempt (seconds)
+          condition         : true only for the retriable status codes
+        -->
+        <retry
+            count="4"
+            interval="@{
+                var r = context.Response;
+                int attempt = context.Variables.GetValueOrDefault&lt;int&gt;(&quot;attemptCount&quot;, 1);
+
+                // 1) Honor server provided timing (clamped to a sane 1..60s window).
+                if (r != null)
+                {
+                    var raMs = r.Headers.GetValueOrDefault(&quot;retry-after-ms&quot;, &quot;&quot;);
+                    if (!string.IsNullOrEmpty(raMs) &amp;&amp; int.TryParse(raMs, out var ms))
+                        return Math.Max(1, Math.Min((int)Math.Ceiling(ms / 1000.0), 60));
+
+                    var raS = r.Headers.GetValueOrDefault(&quot;retry-after&quot;, &quot;&quot;);
+                    if (!string.IsNullOrEmpty(raS) &amp;&amp; int.TryParse(raS, out var s))
+                        return Math.Max(1, Math.Min(s, 60));
+                }
+
+                // 2) Decorrelated jitter exponential backoff: base 1s, cap 30s.
+                //    exponent = retries already done = attemptCount - 1.
+                var rnd = new Random(Guid.NewGuid().GetHashCode());
+                int expo = (int)Math.Min(30.0, Math.Pow(2, Math.Max(0, attempt - 1)));
+                return Math.Max(1, rnd.Next(1, expo + 1));
+            }"
+            first-fast-retry="false"
+            condition="@{
+                var r = context.Response;
+                if (r == null) return false;               // transport errors go to on-error
+                int sc = r.StatusCode;
+
+                // 429 is retriable EXCEPT subscription quota exhaustion (terminal).
+                if (sc == 429)
+                {
+                    var body = r.Body?.As&lt;string&gt;(preserveContent: true) ?? string.Empty;
+                    return !(body.Contains(&quot;QuotaExceeded&quot;) || body.Contains(&quot;insufficient_quota&quot;));
+                }
+
+                // Always retriable transient / gateway codes.
+                if (sc == 408 || sc == 500 || sc == 502 || sc == 503 || sc == 504)
+                    return true;
+
+                // 404 retriable ONLY for a just created deployment (DeploymentNotFound).
+                if (sc == 404)
+                {
+                    var body = r.Body?.As&lt;string&gt;(preserveContent: true) ?? string.Empty;
+                    return body.Contains(&quot;DeploymentNotFound&quot;);
+                }
+
+                return false;
+            }">
+            <!-- Runs on EVERY attempt (first + each retry). Increment, then route. -->
+            <set-variable name="attemptCount"
+                value="@(context.Variables.GetValueOrDefault&lt;int&gt;(&quot;attemptCount&quot;, 0) + 1)" />
+            <!-- attempt 1 -> PTU (primary); attempt 2+ -> PAYG pool (spillover). -->
+            <set-backend-service backend-id="@(context.Variables.GetValueOrDefault&lt;int&gt;(&quot;attemptCount&quot;, 1) == 1 ? &quot;aoai-ptu-backend&quot; : &quot;aoai-payg-pool&quot;)" />
+            <forward-request buffer-request-body="true" timeout="120" />
+        </retry>
+    </backend>
+
+    <outbound>
+        <base />
+        <!-- retries actually performed = attemptCount - 1 -->
+        <set-variable name="retriesDone"
+            value="@(Math.Max(0, context.Variables.GetValueOrDefault&lt;int&gt;(&quot;attemptCount&quot;, 1) - 1))" />
+        <set-header name="x-gateway-retry-count" exists-action="override">
+            <value>@(((int)context.Variables[&quot;retriesDone&quot;]).ToString())</value>
+        </set-header>
+        <!--
+          Final failure shaping: if retries were exhausted and the upstream is
+          still returning a retriable code, normalize to 503 + Retry-After so the
+          CLIENT applies its own outer backoff (defense in depth). Preserve the
+          upstream Retry-After when present.
+        -->
+        <choose>
+            <when condition="@(context.Response != null &amp;&amp; (context.Response.StatusCode == 429 || context.Response.StatusCode &gt;= 500))">
+                <return-response>
+                    <set-status code="503" reason="Upstream AI backend unavailable after retries" />
+                    <set-header name="Retry-After" exists-action="override">
+                        <value>@{
+                            var ra = context.Response.Headers.GetValueOrDefault(&quot;retry-after&quot;, &quot;&quot;);
+                            return string.IsNullOrEmpty(ra) ? &quot;10&quot; : ra;
+                        }</value>
+                    </set-header>
+                    <set-body>@("{\"error\":{\"code\":\"UpstreamUnavailable\",\"message\":\"All retriable AI backends failed after gateway retries. Retry after the Retry-After interval.\",\"gatewayRetryCount\":" + context.Variables.GetValueOrDefault&lt;int&gt;(&quot;retriesDone&quot;, 0) + "}}")</set-body>
+                </return-response>
+            </when>
+        </choose>
+    </outbound>
+
+    <on-error>
+        <base />
+        <!--
+          Reached only for transport/policy exceptions (e.g. connect timeout,
+          DNS failure) where context.Response is null. Backend HTTP 4xx/5xx do
+          NOT arrive here (they are normal responses, handled in <outbound>).
+        -->
+        <return-response>
+            <set-status code="503" reason="AI gateway upstream transport error" />
+            <set-header name="Retry-After" exists-action="override">
+                <value>10</value>
+            </set-header>
+            <set-body>@("{\"error\":{\"code\":\"UpstreamTransportError\",\"message\":\"" + (context.LastError?.Message ?? "Upstream transport failure") + "\"}}")</set-body>
+        </return-response>
+    </on-error>
+</policies>
