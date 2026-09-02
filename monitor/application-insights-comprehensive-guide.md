@@ -1436,7 +1436,7 @@ The Application Insights Agent is delivered as the `Az.ApplicationMonitor` Power
 ```mermaid
 flowchart TB
     PS[PowerShell: Enable-ApplicationInsightsMonitoring]
-    ENV[Machine env vars set<br/>COR_ENABLE_PROFILING=1<br/>COR_PROFILER=&#123;324F817A...&#125;]
+  ENV["Machine env vars set<br/>COR_ENABLE_PROFILING=1<br/>COR_PROFILER={324F817A...}"]
     GAC[HTTP module installed to GAC<br/>RedfieldIISModule]
     RESET[IISReset / app pool recycle]
     W3WP[w3wp.exe starts]
