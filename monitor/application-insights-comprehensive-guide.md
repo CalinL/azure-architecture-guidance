@@ -552,19 +552,21 @@ builder.Services.AddOpenTelemetry().UseAzureMonitor(options =>
 
 ### Cloud Role Name Configuration
 
-Setting the Cloud Role Name is critical for proper Application Map visualization. The cloud role name uses the `service.name` resource attribute.
+Set a distinct Cloud Role Name for each service that sends telemetry to a shared Application Insights resource. This keeps services as separate Application Map nodes. The setting depends on the instrumentation method; there is no universal role-name setting that every agent reads.
 
-#### Option 1: Environment Variable (Recommended)
+#### OpenTelemetry environment variables (recommended)
 
 ```bash
-# Set via environment variable (works for all languages)
+# OpenTelemetry workloads only
 export OTEL_SERVICE_NAME="my-api-service"
 
 # Or with additional resource attributes
 export OTEL_RESOURCE_ATTRIBUTES="service.namespace=mycompany,service.version=1.0.0"
 ```
 
-#### Option 2: Code Configuration (ASP.NET Core)
+The Azure Monitor OpenTelemetry Distro derives Cloud Role Name from the OpenTelemetry `service.name` and optional `service.namespace` resource attributes. `OTEL_SERVICE_NAME` sets `service.name`; it does not configure the legacy IIS Application Insights Agent.
+
+#### OpenTelemetry code configuration (ASP.NET Core)
 
 ```csharp
 // ASP.NET Core - Configure via UseAzureMonitor options
@@ -582,7 +584,7 @@ builder.Services.ConfigureOpenTelemetryTracerProvider((sp, tracerBuilder) =>
 });
 ```
 
-#### Option 3: Java Configuration
+#### Java agent configuration
 
 ```json
 // Java - applicationinsights.json
@@ -595,7 +597,20 @@ builder.Services.ConfigureOpenTelemetryTracerProvider((sp, tracerBuilder) =>
 }
 ```
 
-> **Note**: If you have multiple services sending telemetry to the same Application Insights resource, you **must** set Cloud Role Names to distinguish them in the Application Map.
+#### IIS Application Insights Agent limitation
+
+The codeless IIS Application Insights Agent (`Az.ApplicationMonitor`, formerly Status Monitor v2) does not document a supported Cloud Role Name override. Its `InstrumentationKeyMap` and `redfieldConfiguration.instrumentationKeyMap` settings route matching machines, IIS sites, and virtual paths to an Application Insights connection string; they do not assign role names.
+
+Azure Monitor Agent (AMA) is also not involved. AMA collects guest operating system data through data collection rules and does not configure Application Insights APM fields such as `cloud_RoleName` or `cloud_RoleInstance`.
+
+If the automatically populated IIS role identity does not meet your requirements, use one of these supported alternatives:
+
+- Migrate the application to the Azure Monitor OpenTelemetry Distro and set `service.name`.
+- For an application already using the classic .NET Application Insights SDK, set `telemetry.Context.Cloud.RoleName` with an `ITelemetryInitializer`. This requires an application change and is not codeless.
+- Send each IIS application to a separate Application Insights resource when no application change is possible and strict resource-level separation is required.
+
+> [!IMPORTANT]
+> Do not add an undocumented role-name property to the IIS agent configuration or to an AMA data collection rule. The agent ignores settings that are outside its supported schema.
 
 ### Java Standalone Agent Configuration
 
@@ -653,13 +668,13 @@ Sampling is essential for managing costs and preventing throttling in high-volum
 
 ```mermaid
 flowchart LR
-    subgraph "Client-Side Sampling"
+  subgraph "Source-Side Sampling"
         FIXED[Fixed-Rate Sampling]
         RATE[Rate-Limited Sampling]
         ADAPTIVE[Adaptive Sampling]
     end
     
-    subgraph "Server-Side"
+  subgraph "Application Insights Service"
         INGEST[Ingestion Sampling]
     end
     
@@ -729,11 +744,11 @@ builder.Services.AddOpenTelemetry().UseAzureMonitor(options =>
 |----------|---------------------|---------------|
 | Development/Testing | None or 100% | `SamplingRatio = 1.0` |
 | Low-volume production | None or minimal | `SamplingRatio = 0.5` to `1.0` |
-| High-volume production | Rate-limited | `TracesPerSecond = 5.0` (Java default) |
+| High-volume production | Rate-limited | `TracesPerSecond = 5.0` (default in current distros) |
 | Cost-sensitive | Aggressive | `SamplingRatio = 0.01` to `0.1` |
 | Health checks | Exclude | Sampling override with 0% |
 
-> **Important**: The Azure Monitor OpenTelemetry Distros now include a **default sampler** — the specific sampler and rate depend on the language and distro version. As of current releases: **Python** (1.8.6+) and **Node.js** (1.16.0+) default to **rate-limited sampling (~5 traces/sec)**, **.NET** applies the Application Insights sampler by default, and the **Java** agent (3.4.0+) defaults to rate-limited sampling at 5 requests/sec. Always verify the default for your distro version and set an explicit sampling configuration for production so behavior is deterministic.
+> **Important**: The Azure Monitor OpenTelemetry Distros include a **default sampler** whose type and rate depend on the language and distro version. Current releases converge on **rate-limited sampling (~5 traces/sec)** by default: **.NET / ASP.NET Core** (recent Distro versions), **Node.js** (1.16.0+), **Python** (1.8.6+), and the **Java** agent (3.4.0+). Always verify the default for your distro version and set an explicit sampling configuration for production so behavior is deterministic.
 
 ### Best Practices for Sampling
 
@@ -1009,13 +1024,9 @@ The .NET Profiler captures detailed performance traces for your application.
 3. **Code-based**: Configure in application startup
 
 ```csharp
-// Profiler settings configuration
+// Enable Profiler for ASP.NET Core (Microsoft.ApplicationInsights.Profiler.AspNetCore)
 builder.Services.AddApplicationInsightsTelemetry();
-builder.Services.AddServiceProfiler(options =>
-{
-    options.IsProfilingEnabled = true;
-    options.Duration = TimeSpan.FromMinutes(2);
-});
+builder.Services.AddServiceProfiler();
 ```
 
 ### Snapshot Debugger
@@ -1031,14 +1042,13 @@ Automatically captures debug snapshots when exceptions occur.
 #### Enabling Snapshot Debugger
 
 ```csharp
-// ASP.NET Core
+// ASP.NET Core (Microsoft.ApplicationInsights.SnapshotCollector)
 builder.Services.AddApplicationInsightsTelemetry();
-builder.Services.AddSnapshotCollector(config =>
-{
-    config.IsEnabled = true;
-    config.SnapshotsPerTenMinutesLimit = 1;
-    config.MaximumSnapshotsRequired = 3;
-});
+builder.Services.AddSnapshotCollector();
+
+// Optionally customize via SnapshotCollectorConfiguration:
+// builder.Services.Configure<SnapshotCollectorConfiguration>(
+//     builder.Configuration.GetSection("SnapshotCollector"));
 ```
 
 ### Performance Investigation Workflow
@@ -1123,6 +1133,8 @@ resource appInsights 'Microsoft.Insights/components@2020-02-02' = {
   }
 }
 ```
+
+> **Note**: The Bicep above sets the **Log Analytics workspace** daily cap. The **Application Insights** resource daily cap isn't exposed as a first-class Bicep property on `Microsoft.Insights/components` — set it via the portal (the steps above) or the pricing-plan API. For workspace-based resources, the effective cap is the **minimum** of the two.
 
 > **Warning**: Use daily caps as a safety net, not a replacement for sampling. Hitting the cap causes data loss until the next day.
 
@@ -1597,17 +1609,57 @@ If `Data` only shows a server/database and `Name` a table or procedure — but n
 
 ### Q5. How do I manage sampling with IIS auto-instrumentation?
 
-The injected .NET Framework SDK enables **adaptive sampling by default** (target of ~5 telemetry items per second per node). However, **Agent v1.x does not expose the SDK configuration** (`ApplicationInsights.config`) to you, so you cannot easily retune adaptive sampling the way you would in an SDK-instrumented app.
+The injected .NET Framework SDK enables **adaptive sampling by default**. The default target is approximately five telemetry items per second per IIS worker process. The retained percentage changes with load and is calculated independently on each server instance, so different `cloud_RoleInstance` values can show different retention rates.
+
+The classic ASP.NET SDK defaults used by the injected agent are approximately:
+
+| Setting | Default |
+|---------|---------|
+| Initial sampling percentage | 100% |
+| Maximum telemetry items per second | 5 |
+| Evaluation interval | 15 seconds |
+| Minimum sampling percentage | 0.1% |
+| Maximum sampling percentage | 100% |
+| Sampling percentage decrease timeout | 2 minutes |
+| Sampling percentage increase timeout | 15 minutes |
+| Moving average ratio | 0.25 |
+
+Exact behavior can vary with the agent and injected SDK version. Recent SDK configurations can use separate adaptive processors for event telemetry and other sampled telemetry types. Metrics, custom metrics, and performance counters are not sampled.
+
+> [!IMPORTANT]
+> Setting **Data Sampling** to 100% under **Usage and estimated costs** controls ingestion sampling only. It does not disable adaptive sampling in the injected SDK. If the ingestion endpoint receives telemetry already marked as sampled, it does not sample that telemetry a second time. The portal can therefore show 100% while Search still displays a sampling warning.
+
+Use `itemCount` to verify the effective sampling rate. A retained item with `itemCount > 1` represents multiple original telemetry items. This query identifies differences by role instance, telemetry type, and SDK version:
+
+```kusto
+union requests, dependencies, pageViews, browserTimings, exceptions, traces
+| where timestamp > ago(1d)
+| where isnotempty(cloud_RoleInstance)
+| summarize
+  StoredRecords = count(),
+  EstimatedRecords = sum(itemCount),
+  SampledRecords = countif(itemCount > 1),
+  RetainedPercentage = round(100.0 * count() / sum(itemCount), 2)
+  by cloud_RoleInstance, itemType, sdkVersion
+| where RetainedPercentage < 99
+| order by RetainedPercentage asc
+```
+
+Variation between instances or over time is characteristic of adaptive sampling. A stable configured percentage across sources is more characteristic of fixed-rate or ingestion sampling, although `itemCount` alone does not identify which layer sampled the telemetry.
+
+The codeless Agent v1.x does not expose the injected SDK's `ApplicationInsights.config`, so it does not provide a supported switch to disable or retune this adaptive sampler.
 
 Your options, in order of preference:
 
 | Option | Where it runs | Notes |
 |--------|---------------|-------|
-| **Ingestion sampling** on the Application Insights resource | Server-side | Configurable on the resource (**Usage and estimated costs** → sampling). Works with codeless attach, but drops data *after* transmission — least efficient. |
-| **Daily cap** | Server-side | Safety net against cost spikes; causes data loss when hit (see [Cost Optimization](#cost-optimization)). |
-| **Move to OpenTelemetry / SDK** | In-process | The only way to get precise, trace-consistent sampling control (fixed-rate, rate-limited, per-endpoint overrides). See [Sampling Strategies](#sampling-strategies). |
+| Keep the codeless adaptive default | In-process | Reduces source traffic automatically, but provides no supported tuning control through the agent. |
+| Configure ingestion sampling | Application Insights service | Applies only to telemetry not already sampled by the SDK. It cannot restore telemetry dropped by adaptive sampling. |
+| Set a daily cap | Application Insights service | Safety net against cost spikes; causes data loss when hit (see [Cost Optimization](#cost-optimization)). |
+| Move to OpenTelemetry or code-based SDK instrumentation | In-process | Provides explicit, trace-consistent sampling control. See [Sampling Strategies](#sampling-strategies). |
 
-> **Recommendation**: If sampling control is a real requirement (high volume, cost sensitivity, or the need to exclude health checks), that is a strong signal to migrate that workload from codeless attach to the **OpenTelemetry Distro**, where you control sampling explicitly. Relying on ingestion sampling alone is discouraged because the data is already transmitted before being dropped.
+> [!TIP]
+> If you require 100% retention, per-endpoint exclusions, or a deterministic rate, migrate the workload to the Azure Monitor OpenTelemetry Distro and configure sampling explicitly. Ingestion sampling cannot override source-side adaptive sampling.
 
 Refer to the main [Sampling Strategies](#sampling-strategies) section for the full sampling model, decision matrix, and code samples.
 
@@ -1687,11 +1739,248 @@ The **Usage** experiences answer *"how are people using the application?"* rathe
 
 | Approach | Code change | Sampling control | Full SQL text | Best for |
 |----------|-------------|------------------|---------------|----------|
-| **Application Insights Agent** (codeless) | None | Ingestion only (limited) | Requires `Enable-InstrumentationEngine` | Legacy apps you can't recompile; quick coverage |
+| **Application Insights Agent** (codeless) | None | Adaptive sampling is on by default; ingestion sampling is configurable, but the adaptive sampler is not | Requires `Enable-InstrumentationEngine` | Legacy apps you can't recompile; quick coverage |
 | **Classic Application Insights SDK** | Moderate | Full (in `ApplicationInsights.config`) | Configurable | **Legacy** — interim option only; plan OpenTelemetry migration |
 | **Azure Monitor OpenTelemetry Distro** | Minimal | Full (fixed/rate-limited/overrides) | Configurable | New development; strategic, vendor-neutral standard |
 
 > **Direction of travel**: OpenTelemetry is the recommended long-term standard for Azure Monitor. The classic Application Insights SDK is superseded by OpenTelemetry and is on a retirement path — see the [migration guide](https://learn.microsoft.com/azure/azure-monitor/app/migrate-to-opentelemetry). Treat both the codeless Agent and the classic SDK as bridges for legacy IIS workloads, and plan migration of actively developed apps to the OpenTelemetry Distro to gain sampling control, richer configuration, and future support.
+
+---
+
+### Q9. How do I verify that the monitoring agents (Azure Monitor Agent and the IIS auto-instrumentation agent) are healthy?
+
+These are **two independent agents** verified in different ways — one can be healthy while the other is not.
+
+**Azure Monitor Agent (AMA)** — the OS-level agent that collects performance counters, event logs, and syslog into a Log Analytics workspace. Each connected machine sends a periodic record to the **`Heartbeat`** table:
+
+```kusto
+// Latest heartbeat per machine (OS / AMA agent health)
+Heartbeat
+| where TimeGenerated > ago(1h)
+| summarize LastHeartbeat = max(TimeGenerated) by Computer, _ResourceId
+| extend MinutesSince = datetime_diff('minute', now(), LastHeartbeat)
+| order by MinutesSince desc
+```
+
+You can also check the agent from the portal (**VM → Monitoring → Agents**, or the Arc agent for hybrid servers). Allow for **ingestion latency** — heartbeat records can arrive a few minutes late.
+
+**Application Insights IIS agent** — verified both on the server and in telemetry:
+
+```powershell
+# On the server: are the profiler DLLs loaded and env vars set? (expect >=12 DLLs)
+Get-ApplicationInsightsMonitoringStatus -InspectProcess
+```
+
+```kusto
+// In telemetry: is each role instance still sending heartbeat?
+AppMetrics
+| where TimeGenerated > ago(1h) and Name == "HeartbeatState"
+| summarize LastSeen = max(TimeGenerated) by AppRoleInstance
+| extend MinutesSince = datetime_diff('minute', now(), LastSeen)
+| order by MinutesSince desc
+```
+
+| Agent | Health signal | Where to check |
+|-------|---------------|----------------|
+| Azure Monitor Agent | `Heartbeat` table (`Computer`) | Log Analytics / VM Agents blade |
+| App Insights IIS agent | `Get-ApplicationInsightsMonitoringStatus`; request + `HeartbeatState` telemetry | Server (PowerShell) + Application Insights logs |
+
+---
+
+### Q10. Which scenarios cause telemetry gaps, and how do I tell them apart from an agent failure?
+
+Most "lost heartbeat" reports are **expected lifecycle events**, not failures:
+
+| Scenario | Effect on telemetry | Expected? |
+|----------|---------------------|-----------|
+| App pool idle time-out (default 20 min) | Worker process stops; no telemetry until next request | Yes — set idle time-out `0` / AlwaysRunning |
+| App pool / scheduled recycle | Brief gap while `w3wp.exe` restarts | Yes |
+| Load-balancer draining / rolling deployment | One node quiesced while others serve | Yes — filter by role instance |
+| Autoscale in (scale-down) | Instance removed; its `AppRoleInstance` / `Computer` stops | Yes |
+| OS patching / maintenance reboot | Whole server offline for the reboot window | Yes — schedule and expect the gap |
+| VM deallocation / failover | Instance disappears or moves | Yes |
+| High load / CPU pressure | Telemetry channel buffers can drop items; possible throttling | Partial loss under stress |
+| Profiler failed to re-attach after restart | No telemetry from the new process | **No — investigate (see [Q3](#q3-why-do-some-servers-report-no-data-dll-loading-problem))** |
+
+**How to tell them apart:** correlate the gap with the machine's power/agent state. A gap that lines up with a reboot, recycle, scale-in, or deployment is benign; a gap while the process is up and serving traffic is a real agent problem.
+
+```kusto
+// Machine heartbeat over time — line gaps up against your app telemetry gaps
+Heartbeat
+| where TimeGenerated > ago(6h)
+| summarize Heartbeats = count() by bin(TimeGenerated, 5m), Computer
+```
+
+---
+
+### Q11. How do I alert when a server or agent stops sending a heartbeat for more than 30 minutes?
+
+**Machine / AMA agent — no heartbeat for 30 minutes** (log search alert on the `Heartbeat` table):
+
+```kusto
+Heartbeat
+| where TimeGenerated > ago(1h)
+| summarize LastHeartbeat = max(TimeGenerated) by Computer, _ResourceId
+| where LastHeartbeat < ago(30m)
+```
+
+Configure the rule with an evaluation frequency of 5–10 minutes, firing when the query returns rows, and **split by `Computer`** (and `_ResourceId`) so each machine alerts independently.
+
+**Application Insights IIS agent — role instance stopped:**
+
+```kusto
+AppMetrics
+| where TimeGenerated > ago(1h) and Name == "HeartbeatState"
+| summarize LastSeen = max(TimeGenerated) by AppRoleInstance
+| where LastSeen < ago(30m)
+```
+
+Best practices:
+
+- **Metric vs. log alert**: the workspace also exposes a near-real-time **Heartbeat metric**. Metric alerts are stateful and better at detecting the *absence* of data; log alerts are more flexible (KQL) but more latent. For missing-heartbeat detection, prefer the metric alert or size the log-alert window to absorb ingestion latency.
+- To detect specifically whether an **Azure VM is running** (not just the agent), use the platform **VM availability** metric — it isn't subject to agent or ingestion latency.
+- Set the evaluation window comfortably above your normal heartbeat interval + ingestion latency to avoid false positives.
+
+---
+
+### Q12. The agent stopped reporting entirely — how do I do a clean uninstall and reinstall?
+
+Occasionally the IIS agent reaches a state where a restart doesn't recover it and a clean reinstall is required. Do this in a maintenance window (it recycles IIS):
+
+```powershell
+# 1. Disable monitoring (detaches the profiler / removes the HTTP module)
+Disable-ApplicationInsightsMonitoring
+
+# 2. Recycle so running worker processes drop the profiler
+iisreset
+
+# 3. Remove the module
+Uninstall-Module -Name Az.ApplicationMonitor -AllVersions
+```
+
+Then clear leftovers before reinstalling:
+
+- **Residual machine-level profiler environment variables** (for example `COR_ENABLE_PROFILING`, `COR_PROFILER`, `MicrosoftInstrumentationEngine_*`). These are stored in the registry as service `Environment` entries (for the `W3SVC` / `WAS` services) and/or machine environment — remove any that remain, then re-check the worker process:
+
+  ```powershell
+  Get-ApplicationInsightsMonitoringStatus -InspectProcess
+  ```
+
+- **Leave the agent's GAC module in place.** `Disable-ApplicationInsightsMonitoring` intentionally does **not** remove it, because removing the module from the GAC can cause IIS instabilities — a reinstall reuses it safely.
+- If a web farm **shared configuration** was used, remove the `ManagedHttpModuleHelper` entry previously added to `ApplicationHost.config`.
+
+Reinstall cleanly and verify:
+
+```powershell
+Install-Module -Name Az.ApplicationMonitor -AllowPrerelease -AcceptLicense
+Enable-ApplicationInsightsMonitoring -ConnectionString "<your-connection-string>"
+iisreset
+Get-ApplicationInsightsMonitoringStatus -InspectProcess   # expect >=12 DLLs loaded
+```
+
+> **Reboot as a last resort**: if profiler environment variables or locked DLLs persist, a full server reboot guarantees no worker process is still holding the old binaries before you re-enable. In a web farm, roll through one node at a time.
+
+---
+
+### Q13. Why do I sometimes see a low-level TCP dependency instead of the SQL query, and how do I identify the data-access technology?
+
+This extends [Q4](#q4-why-is-sql-query-information-collected-in-some-cases-but-not-others). The dependency **`DependencyType`** field tells you *how* the call was captured:
+
+| What you see | Meaning |
+|--------------|---------|
+| `DependencyType == "SQL"` with a `Data` value | Captured through the SQL client (`System.Data.SqlClient` / `Microsoft.Data.SqlClient`, or JDBC on Java) — full command text when the Instrumentation Engine / `enableSqlCommandTextInstrumentation` is on |
+| `DependencyType == "SQL"` but `Data` empty (only `Target` / `Name`) | SQL client recognized, but full text not enabled — server/database only |
+| A generic `tcp` (or HTTP) dependency to a database host:port | The specific driver wasn't recognized by the instrumentation, so the call was captured at the socket level — you get the target host/port, not the query |
+| No dependency at all | The data-access library isn't auto-instrumented |
+
+**Why "sometimes the query, sometimes just TCP":** Entity Framework Core, EF6, Dapper, and raw ADO.NET all sit on top of SqlClient, so they normally surface as `SQL` dependencies. Calls that bypass the recognized client (some ORMs, non-SQL-Server providers, or custom drivers) fall back to a lower-level `tcp` dependency with only the endpoint.
+
+**Identifying the ORM/technology:** the telemetry records the **underlying database client** (SqlClient / JDBC), **not** the ORM — Application Insights does not label a dependency as "Entity Framework" vs "Dapper" vs "Hibernate." To determine which layer issued the call:
+
+- Inspect the **call stack** via **[Snapshot Debugger](#snapshot-debugger)** or the **[.NET Profiler](#net-profiler)** on a sample.
+- Correlate the dependency with its parent **operation/request** and the code path.
+- On Java, a `SQL` dependency captured via JDBC sits beneath Hibernate/JPA.
+
+```kusto
+// See how each database call was captured
+AppDependencies
+| where TimeGenerated > ago(1h)
+| extend HasCommandText = isnotempty(Data)
+| summarize calls = count() by DependencyType, HasCommandText
+| order by calls desc
+```
+
+---
+
+### Q14. How do I collapse similar log rows in Log Analytics to reduce noise?
+
+Sampling reduces what is *ingested*; when you're *analyzing* high-volume telemetry, group similar rows with KQL instead of scrolling thousands of near-duplicates:
+
+```kusto
+// Group exceptions to see patterns instead of individual rows
+AppExceptions
+| where TimeGenerated > ago(24h)
+| summarize Count = count() by ProblemId, ExceptionType, OuterMessage
+| order by Count desc
+```
+
+```kusto
+// Normalize noisy messages that differ only by an ID, then group
+AppTraces
+| where TimeGenerated > ago(24h)
+| extend Normalized = replace_regex(Message, @"\d+", "N")
+| summarize Count = count() by Normalized
+| order by Count desc
+```
+
+- Use `summarize count() by ...` on low-cardinality fields (`ProblemId`, `OperationName`, `ResultCode`, `AppRoleName`).
+- Use `replace_regex()` (or `parse`) to strip IDs/GUIDs out of messages so near-duplicates group together.
+- The **Failures** view already groups by `ProblemId` automatically — start there before writing KQL.
+
+---
+
+### Q15. How do I target specific servers or roles in Search and Logs (Cloud Role Name / Role Instance)?
+
+Every telemetry item carries the **Cloud Role Name** (the service/component) and **Cloud Role Instance** (the specific server/pod). Use them to narrow an investigation to one component or one server.
+
+Do not use Azure Monitor Agent (AMA) configuration to change these values. AMA is the operating system telemetry agent. The codeless IIS Application Insights Agent is a separate APM agent, and its documented site-routing configuration selects the destination Application Insights resource rather than a Cloud Role Name. See [Cloud Role Name Configuration](#cloud-role-name-configuration) for the supported alternatives and the IIS codeless limitation.
+
+| Concept | App Insights field | `App*` Log Analytics column |
+|---------|-------------------|-----------------------------|
+| Component / service | `cloud_RoleName` | `AppRoleName` |
+| Server / instance | `cloud_RoleInstance` | `AppRoleInstance` |
+
+**In the Search / Transaction search UI**: add a filter on **Cloud role name** or **Cloud role instance** (or type the server name in the search box).
+
+**In Logs (KQL):**
+
+```kusto
+// All failures from a single component on a single server
+AppRequests
+| where TimeGenerated > ago(1h)
+| where AppRoleName == "orders-api" and AppRoleInstance == "web01"
+| where Success == false
+| project TimeGenerated, Name, ResultCode, OperationId, AppRoleInstance
+```
+
+```kusto
+// Compare request volume and health across instances of one role
+AppRequests
+| where TimeGenerated > ago(1h) and AppRoleName == "orders-api"
+| summarize Requests = count(), Failures = countif(Success == false) by AppRoleInstance
+| order by Failures desc
+```
+
+Use this inventory query to confirm the role values currently arriving in the workspace:
+
+```kusto
+union AppRequests, AppDependencies, AppExceptions, AppTraces
+| where TimeGenerated > ago(1h)
+| summarize TelemetryItems = count() by AppRoleName, AppRoleInstance
+| order by TelemetryItems desc
+```
+
+Set a distinct **Cloud Role Name** per service where the instrumentation method supports it. Without distinct role names, components that share an Application Insights resource can collapse into one Application Map node.
 
 ---
 
@@ -1703,6 +1992,7 @@ The **Usage** experiences answer *"how are people using the application?"* rathe
 - [Well-Architected Framework - Application Insights](https://learn.microsoft.com/en-us/azure/well-architected/service-guides/application-insights)
 - [OpenTelemetry Configuration](https://learn.microsoft.com/en-us/azure/azure-monitor/app/opentelemetry-configuration)
 - [Sampling in Application Insights](https://learn.microsoft.com/en-us/azure/azure-monitor/app/opentelemetry-sampling)
+- [Sampling in Application Insights (classic API)](https://learn.microsoft.com/en-us/azure/azure-monitor/app/sampling-classic-api)
 - [Azure Monitor Pricing](https://azure.microsoft.com/pricing/details/monitor/)
 - [Application Insights Service Limits](https://learn.microsoft.com/en-us/azure/azure-monitor/fundamentals/service-limits#application-insights)
 
@@ -1715,6 +2005,14 @@ The **Usage** experiences answer *"how are people using the application?"* rathe
 - [Dependency tracking and advanced SQL tracking](https://learn.microsoft.com/en-us/azure/azure-monitor/app/asp-net-dependencies#advanced-sql-tracking-to-get-full-sql-query)
 - [Usage analysis with Application Insights](https://learn.microsoft.com/en-us/azure/azure-monitor/app/usage)
 - [Application Insights FAQ](https://learn.microsoft.com/azure/azure-monitor/app/application-insights-faq)
+
+### Agent Health, Alerting, and Diagnostics
+
+- [Azure Monitor Agent overview](https://learn.microsoft.com/en-us/azure/azure-monitor/agents/azure-monitor-agent-overview)
+- [Queries for the Heartbeat table](https://learn.microsoft.com/en-us/azure/azure-monitor/reference/queries/heartbeat)
+- [Monitor virtual machines with Azure Monitor: Alerts (agent heartbeat)](https://learn.microsoft.com/en-us/azure/azure-monitor/vm/monitor-virtual-machine-alerts)
+- [Create a log search alert rule](https://learn.microsoft.com/en-us/azure/azure-monitor/alerts/alerts-create-log-alert-rule)
+- [Application Insights dependency tracking and telemetry data model](https://learn.microsoft.com/en-us/azure/azure-monitor/app/data-model-complete)
 
 ### Client-Side and Autoinstrumentation
 
