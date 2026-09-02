@@ -78,6 +78,7 @@ nav:
     - Service Bus with Microservices: mission-critical-saas/service-bus-microservices.md
   - Monitoring:
     - Application Insights Guide: monitor/application-insights-comprehensive-guide.md
+    - Azure Monitor Agent (AMA) Guide: monitor/azure-monitor-agent-comprehensive-guide.md
   - Security:
     - Defender for Storage: mdc/microsoft-defender-for-storage-malware-scanning.md
 

@@ -744,11 +744,11 @@ builder.Services.AddOpenTelemetry().UseAzureMonitor(options =>
 |----------|---------------------|---------------|
 | Development/Testing | None or 100% | `SamplingRatio = 1.0` |
 | Low-volume production | None or minimal | `SamplingRatio = 0.5` to `1.0` |
-| High-volume production | Rate-limited | `TracesPerSecond = 5.0` (default in current distros) |
+| High-volume production | Rate-limited | `TracesPerSecond = 5.0` (Java default) |
 | Cost-sensitive | Aggressive | `SamplingRatio = 0.01` to `0.1` |
 | Health checks | Exclude | Sampling override with 0% |
 
-> **Important**: The Azure Monitor OpenTelemetry Distros include a **default sampler** whose type and rate depend on the language and distro version. Current releases converge on **rate-limited sampling (~5 traces/sec)** by default: **.NET / ASP.NET Core** (recent Distro versions), **Node.js** (1.16.0+), **Python** (1.8.6+), and the **Java** agent (3.4.0+). Always verify the default for your distro version and set an explicit sampling configuration for production so behavior is deterministic.
+> **Important**: The Azure Monitor OpenTelemetry Distros now include a **default sampler** — the specific sampler and rate depend on the language and distro version. As of current releases: **Python** (1.8.6+) and **Node.js** (1.16.0+) default to **rate-limited sampling (~5 traces/sec)**, **.NET** applies the Application Insights sampler by default, and the **Java** agent (3.4.0+) defaults to rate-limited sampling at 5 requests/sec. Always verify the default for your distro version and set an explicit sampling configuration for production so behavior is deterministic.
 
 ### Best Practices for Sampling
 
@@ -1024,9 +1024,13 @@ The .NET Profiler captures detailed performance traces for your application.
 3. **Code-based**: Configure in application startup
 
 ```csharp
-// Enable Profiler for ASP.NET Core (Microsoft.ApplicationInsights.Profiler.AspNetCore)
+// Profiler settings configuration
 builder.Services.AddApplicationInsightsTelemetry();
-builder.Services.AddServiceProfiler();
+builder.Services.AddServiceProfiler(options =>
+{
+    options.IsProfilingEnabled = true;
+    options.Duration = TimeSpan.FromMinutes(2);
+});
 ```
 
 ### Snapshot Debugger
@@ -1042,13 +1046,14 @@ Automatically captures debug snapshots when exceptions occur.
 #### Enabling Snapshot Debugger
 
 ```csharp
-// ASP.NET Core (Microsoft.ApplicationInsights.SnapshotCollector)
+// ASP.NET Core
 builder.Services.AddApplicationInsightsTelemetry();
-builder.Services.AddSnapshotCollector();
-
-// Optionally customize via SnapshotCollectorConfiguration:
-// builder.Services.Configure<SnapshotCollectorConfiguration>(
-//     builder.Configuration.GetSection("SnapshotCollector"));
+builder.Services.AddSnapshotCollector(config =>
+{
+    config.IsEnabled = true;
+    config.SnapshotsPerTenMinutesLimit = 1;
+    config.MaximumSnapshotsRequired = 3;
+});
 ```
 
 ### Performance Investigation Workflow
@@ -1133,8 +1138,6 @@ resource appInsights 'Microsoft.Insights/components@2020-02-02' = {
   }
 }
 ```
-
-> **Note**: The Bicep above sets the **Log Analytics workspace** daily cap. The **Application Insights** resource daily cap isn't exposed as a first-class Bicep property on `Microsoft.Insights/components` — set it via the portal (the steps above) or the pricing-plan API. For workspace-based resources, the effective cap is the **minimum** of the two.
 
 > **Warning**: Use daily caps as a safety net, not a replacement for sampling. Hitting the cap causes data loss until the next day.
 
@@ -1992,7 +1995,6 @@ Set a distinct **Cloud Role Name** per service where the instrumentation method 
 - [Well-Architected Framework - Application Insights](https://learn.microsoft.com/en-us/azure/well-architected/service-guides/application-insights)
 - [OpenTelemetry Configuration](https://learn.microsoft.com/en-us/azure/azure-monitor/app/opentelemetry-configuration)
 - [Sampling in Application Insights](https://learn.microsoft.com/en-us/azure/azure-monitor/app/opentelemetry-sampling)
-- [Sampling in Application Insights (classic API)](https://learn.microsoft.com/en-us/azure/azure-monitor/app/sampling-classic-api)
 - [Azure Monitor Pricing](https://azure.microsoft.com/pricing/details/monitor/)
 - [Application Insights Service Limits](https://learn.microsoft.com/en-us/azure/azure-monitor/fundamentals/service-limits#application-insights)
 
