@@ -1,23 +1,27 @@
 # Application Insights Comprehensive Guide
 
-> **Level**: L300-400 Deep Dive | **Last Updated**: February 2026
+> **Level**: L300-400 Deep Dive | **Last Updated**: September 2026
 
 ## Table of Contents
 
 1. [Overview](#overview)
 2. [Architecture and Data Flow](#architecture-and-data-flow)
-3. [Instrumentation Methods](#instrumentation-methods)
-4. [Telemetry Data Model](#telemetry-data-model)
-5. [Configuration Deep Dive](#configuration-deep-dive)
-6. [Sampling Strategies](#sampling-strategies)
-7. [Distributed Tracing](#distributed-tracing)
-8. [Alerting and Smart Detection](#alerting-and-smart-detection)
-9. [Performance Diagnostics](#performance-diagnostics)
-10. [Cost Optimization](#cost-optimization)
-11. [Security and Compliance](#security-and-compliance)
-12. [Well-Architected Framework Alignment](#well-architected-framework-alignment)
-13. [Production Readiness Checklist](#production-readiness-checklist)
-14. [References](#references)
+3. [Enterprise Workspace Design](#enterprise-workspace-design)
+4. [Instrumentation Methods](#instrumentation-methods)
+5. [Client-Side Monitoring (Real User Monitoring)](#client-side-monitoring-real-user-monitoring)
+6. [Telemetry Data Model](#telemetry-data-model)
+7. [Configuration Deep Dive](#configuration-deep-dive)
+8. [Sampling Strategies](#sampling-strategies)
+9. [Distributed Tracing](#distributed-tracing)
+10. [Container and Kubernetes Monitoring](#container-and-kubernetes-monitoring)
+11. [Alerting and Smart Detection](#alerting-and-smart-detection)
+12. [Performance Diagnostics](#performance-diagnostics)
+13. [Cost Optimization](#cost-optimization)
+14. [Security and Compliance](#security-and-compliance)
+15. [Well-Architected Framework Alignment](#well-architected-framework-alignment)
+16. [Production Readiness Checklist](#production-readiness-checklist)
+17. [FAQ: IIS Auto-Instrumentation and Operations](#faq-iis-auto-instrumentation-and-operations)
+18. [References](#references)
 
 ---
 
@@ -76,6 +80,19 @@ graph TB
     style ALERTS fill:#fff3e0
     style PROFILER fill:#f3e5f5
 ```
+
+### Where Application Insights Fits in Azure Monitor
+
+Application Insights is the application-layer feature of the broader **Azure Monitor** platform, which is organized around the three pillars of observability plus change tracking:
+
+| Pillar | Store | Role of Application Insights |
+|--------|-------|------------------------------|
+| **Metrics** | Azure Monitor Metrics / Azure Monitor workspace (Prometheus) | Emits pre-aggregated standard and custom metrics |
+| **Logs** | Log Analytics workspace (Azure Data Explorer engine) | Stores all App Insights telemetry as `App*` tables |
+| **Distributed traces** | Log Analytics workspace | Primary producer — end-to-end transaction correlation |
+| **Changes** | Azure Resource Graph (Change Analysis) | Correlate deployments/config changes with incidents |
+
+> **Tip**: Use **Change Analysis** (built on Azure Resource Graph) alongside Application Insights when triaging incidents — it identifies infrastructure or configuration changes that might have caused a regression, without requiring any resource-provider registration.
 
 ---
 
@@ -164,6 +181,83 @@ graph TB
 
 ---
 
+## Enterprise Workspace Design
+
+Because Application Insights stores its telemetry in a Log Analytics workspace, **workspace topology is an Application Insights design decision**. At enterprise scale it determines cost, RBAC, data residency, and how monitoring integrates with SIEM (Microsoft Sentinel).
+
+### How many Application Insights resources?
+
+| Consideration | Guidance |
+|---------------|----------|
+| **Isolation** | Use one resource per workload per environment (dev/staging/prod) to prevent telemetry mixing and isolate failure domains |
+| **Consolidation trade-off** | A shared resource across components gives a holistic Application Map and Usage view, but at high volume it can degrade the performance of those experiences |
+| **Component identity** | Distinguish components inside a shared resource with **Cloud Role Name** (see [Configuration Deep Dive](#configuration-deep-dive)) |
+
+### Log Analytics workspace topology
+
+| Factor | Guidance |
+|--------|----------|
+| **Default posture** | Centralize into as few workspaces as possible — simplifies cross-resource queries, RBAC, and cost management |
+| **Data sovereignty** | Create a workspace per region where regulations require data residency; deploy each App Insights resource in the same region as its workspace |
+| **Multiple Entra tenants** | Provision at least one workspace per Microsoft Entra tenant for tenant-scoped sources; use **Azure Lighthouse** for centralized cross-tenant access |
+| **Operational vs. security data** | Separate workspaces when SOC (Sentinel) and operational data don't overlap, for cost efficiency and access isolation |
+| **Scale and cost** | Link high-volume regional workspaces to a **dedicated cluster** for commitment-tier pricing and customer-managed keys. For cross-region resilience, rely on availability zones and workspace replication |
+
+### Landing zone / management subscription pattern
+
+Aligned with the Cloud Adoption Framework, centralize the monitoring data platform in a dedicated **management subscription**:
+
+```mermaid
+flowchart TB
+    subgraph "Workload Subscriptions"
+        APP1[Workload A<br/>App Insights]
+        APP2[Workload B<br/>App Insights]
+        INFRA[Infra resources<br/>diagnostic settings]
+    end
+
+    subgraph "Management Subscription"
+        LA[Central Log Analytics<br/>workspace]
+        AMW[Azure Monitor workspace<br/>Prometheus]
+        ALERTS[Alert rules]
+        SENTINEL[Microsoft Sentinel<br/>SIEM/SOAR]
+    end
+
+    APP1 --> LA
+    APP2 --> LA
+    INFRA --> LA
+    LA --> ALERTS
+    AMW --> ALERTS
+    LA --> SENTINEL
+
+    style LA fill:#c8e6c9
+    style SENTINEL fill:#fff3e0
+```
+
+- Data sources across workload subscriptions send to the central workspaces; platform metrics remain at the resource subscription level and are routed to the central workspace for correlation.
+- Place alert rules in the same resource group as the workspaces they target.
+
+### Governance and access control
+
+| Control | Benefit |
+|---------|---------|
+| **Azure Policy** to disable workspace creation for most users | Prevents data fragmentation and cost sprawl |
+| **Azure Policy** to auto-configure diagnostic settings on infrastructure | Ensures consistent, centralized log collection |
+| **Resource-based RBAC** (not workspace-wide permissions) | Least-privilege access scoped to each resource |
+| **Table-level RBAC** | Grants access to specific tables (for example, security tables for a SOC team) |
+
+### Microsoft Sentinel colocation
+
+Microsoft Sentinel uses the **same Log Analytics workspace** as Azure Monitor. You can enable Sentinel (SIEM/SOAR) on the workspace that also holds operational telemetry, or split SOC and operational data across separate workspaces based on data overlap, cost, and access requirements. See the [sample workspace designs](https://learn.microsoft.com/en-us/azure/sentinel/sample-workspace-designs) for multi-tenant, multi-region, and multi-cloud patterns.
+
+### Visualization choice
+
+| Option | When to use |
+|--------|-------------|
+| **Azure Workbooks** | Default — no extra components or cost; always available |
+| **Azure Managed Grafana** | Existing Grafana investment, or dashboards spanning multiple data sources (extra cost) |
+
+---
+
 ## Instrumentation Methods
 
 ### Decision Matrix
@@ -245,14 +339,29 @@ APPLICATIONINSIGHTS_CONNECTION_STRING=InstrumentationKey=xxx;IngestionEndpoint=h
 
 ### Auto-Instrumentation Supported Platforms
 
-| Platform | Enablement Method |
-|----------|-------------------|
-| Azure App Service | Portal toggle / ARM deployment |
-| Azure Functions | Built-in integration |
-| Azure VM / VMSS | VM extension |
-| Azure Spring Apps | Configuration property |
-| Azure Container Apps | Environment configuration |
-| Azure Kubernetes Service | OTEL Collector / Sidecar |
+Autoinstrumentation (codeless attach) availability depends on **both** the hosting environment and the language. The following reflects the official support matrix.
+
+| Environment / Resource provider | .NET Framework | .NET / .NET Core | Java | Node.js | Python |
+|---------------------------------|:--------------:|:----------------:|:----:|:-------:|:------:|
+| App Service — Windows (code) | ✅ | ✅¹ | ✅¹ | ✅¹ | ❌ |
+| App Service — Windows (container) | ✅²³ | ✅²³ | ✅²³ | ✅²³ | ❌ |
+| App Service — Linux (code) | ❌ | ✅¹ | ✅¹ | ✅¹ | ✅ |
+| App Service — Linux (container) | ❌ | ✅³ | ✅³ | ✅³ | ❌ |
+| Azure Functions | ✅¹ | ✅¹ | ✅¹ | ✅¹ | ✅¹ |
+| Azure Spring Apps | ❌ | ❌ | ✅ | ❌ | ❌ |
+| Azure Kubernetes Service (AKS) | ❌ | ✅² | ✅ | ✅ | ✅² |
+
+**Footnotes**: ¹ Enabled automatically / on by default. &nbsp; ² Public preview (for AKS, .NET and Python are in *limited* preview; Java and Node.js in public preview). &nbsp; ³ Single-container apps only — multi-container or sidecar apps require manual OpenTelemetry.
+
+**Other hosting environments:**
+
+| Environment | Codeless option | Notes |
+|-------------|-----------------|-------|
+| Azure VM / VMSS (Windows) | Application Insights Agent (VM extension) | .NET; other languages use the standalone/manual approach |
+| On-premises / IaaS IIS (Windows) | Application Insights Agent (`Az.ApplicationMonitor`, formerly Status Monitor v2) | .NET Framework / .NET — see the [IIS FAQ](#faq-iis-auto-instrumentation-and-operations) |
+| Azure Container Apps | **Not supported** | ACA does **not** support the Application Insights auto-instrumentation agent — instrument with the [OpenTelemetry Distro](#opentelemetry-instrumentation-recommended)/SDK (see [Container and Kubernetes Monitoring](#container-and-kubernetes-monitoring)) |
+
+> **Guidance**: For new development, prefer the **OpenTelemetry Distro** over codeless attach for full configuration and extensibility. Use autoinstrumentation for quick coverage and for legacy apps you cannot recompile.
 
 ### Service Limits Reference
 
@@ -269,6 +378,70 @@ APPLICATIONINSIGHTS_CONNECTION_STRING=InstrumentationKey=xxx;IngestionEndpoint=h
 | Trace/exception message length | 32,768 characters | 32,768 characters |
 | Availability tests per resource | 100 | 100 |
 | .NET Profiler/Snapshot Debugger retention | 2 weeks | 6 months (contact support) |
+
+---
+
+## Client-Side Monitoring (Real User Monitoring)
+
+Server-side instrumentation (OpenTelemetry or the auto-instrumentation agent) captures requests, dependencies, and exceptions — but it sees nothing that happens **inside the user's browser**. The **Application Insights JavaScript SDK** provides Real User Monitoring (RUM): page views, browser load timings, AJAX/fetch calls, client-side exceptions, and the user/session data that powers the **Usage** experiences.
+
+> **Important**: Browser telemetry uses the **JavaScript SDK, not OpenTelemetry**. This is the supported client-side path, and you are **not** expected to migrate browser monitoring to OpenTelemetry. Use OpenTelemetry for server-side code (including Node.js). **Full-stack monitoring = server-side OpenTelemetry + browser JavaScript SDK** — one does not replace the other.
+
+### Enablement options
+
+| Method | When to use |
+|--------|-------------|
+| **JavaScript (Web) SDK Loader Script** | Recommended for most sites — auto-updates from the CDN; add per page you want monitored |
+| **npm package** (`@microsoft/applicationinsights-web`) | When you need IntelliSense, custom events/config, or the React / React Native / Angular framework extensions |
+
+### What it collects
+
+| Signal | Table | Notes |
+|--------|-------|-------|
+| **Page views** | `AppPageViews` | Collected by default |
+| **Browser timings** | `AppBrowserTimings` | Page load performance breakdown |
+| **AJAX / fetch dependencies** | `AppDependencies` (`ClientType == "Browser"`) | `fetch` collection is off by default in some versions |
+| **Client exceptions** | `AppExceptions` | Unhandled browser errors with stack, URL, line/column |
+| **Users / sessions** | Derived from anonymous user/session IDs | Powers Usage → Users, Sessions, Funnels, Flows, Retention, Cohorts |
+| **Clicks / interactions** | `AppEvents` (custom events) | Requires the **Click Analytics** plug-in |
+
+### Loader Script example
+
+```html
+<script type="text/javascript">
+!(function (cfg){/* Application Insights Web SDK Loader Script */})({
+  src: "https://js.monitor.azure.com/scripts/b/ai.3.gbl.min.js",
+  crossOrigin: "anonymous",
+  // cr: true,  // Fail over to backup CDN endpoints if the primary fails to load
+  cfg: {
+    connectionString: "YOUR_CONNECTION_STRING"
+  }
+});
+</script>
+```
+
+> **Load resilience**: Set `cr: true` so the loader falls back to backup CDN endpoints (for example `js.cdn.applicationinsights.io`) if the primary CDN fails. Optionally add Subresource Integrity (SRI) checks.
+
+### npm example
+
+```javascript
+import { ApplicationInsights } from '@microsoft/applicationinsights-web';
+
+const appInsights = new ApplicationInsights({ config: {
+  connectionString: 'YOUR_CONNECTION_STRING'
+}});
+appInsights.loadAppInsights();
+appInsights.trackPageView();
+```
+
+### Security and cost considerations
+
+- **The connection string is embedded in client HTML and visible to end users.** It is not a secret/key, but there is no straightforward way to use Microsoft Entra ID authentication for browser telemetry. Consider a **separate Application Insights resource** (with local auth) for browser telemetry to isolate it from server-side telemetry.
+- **Control client-side cost** by limiting the number of AJAX calls reported per page view, or disabling AJAX reporting. Note that disabling AJAX also disables **JavaScript distributed-trace correlation** between the browser and your backend.
+
+### Relationship to the Usage experiences
+
+The **Usage** pane (Users, Sessions, Events, Funnels, User Flows, Retention, Cohorts, Impact) is built primarily from **page views** and **custom events**. Without the JavaScript SDK (or server-side `TrackEvent` custom events), Usage is sparse for server-only workloads — see [Q7 in the IIS FAQ](#q7-what-does-the-usage-pane-show-and-why-is-it-sometimes-empty).
 
 ---
 
@@ -560,7 +733,7 @@ builder.Services.AddOpenTelemetry().UseAzureMonitor(options =>
 | Cost-sensitive | Aggressive | `SamplingRatio = 0.01` to `0.1` |
 | Health checks | Exclude | Sampling override with 0% |
 
-> **Important**: Sampling is **not enabled by default** in .NET, Node.js, and Python OpenTelemetry distros. You must explicitly configure sampling. Java agent 3.4.0+ enables rate-limited sampling (5 req/sec) by default.
+> **Important**: The Azure Monitor OpenTelemetry Distros now include a **default sampler** — the specific sampler and rate depend on the language and distro version. As of current releases: **Python** (1.8.6+) and **Node.js** (1.16.0+) default to **rate-limited sampling (~5 traces/sec)**, **.NET** applies the Application Insights sampler by default, and the **Java** agent (3.4.0+) defaults to rate-limited sampling at 5 requests/sec. Always verify the default for your distro version and set an explicit sampling configuration for production so behavior is deterministic.
 
 ### Best Practices for Sampling
 
@@ -640,6 +813,84 @@ Use transaction diagnostics to trace individual requests end-to-end:
 2. Select a specific operation
 3. Click on a sample request
 4. View the end-to-end transaction timeline
+
+---
+
+## Container and Kubernetes Monitoring
+
+Monitoring containerized workloads spans multiple layers. **Application Insights covers the application layer**; other Azure Monitor services cover the cluster, control plane, and infrastructure. Use them together for full-stack visibility.
+
+### Kubernetes monitoring layers
+
+| Layer | What it monitors | Azure service |
+|-------|------------------|---------------|
+| **Network** | Virtual network, flow logs, traffic between services | Network Watcher, Traffic Analytics, Network Insights |
+| **Cluster & control plane** | Nodes, pods, API server, kubelet, Kubernetes events | Azure Monitor managed service for **Prometheus** + **Container Insights** + control-plane **diagnostic logs** |
+| **Application** | App performance, distributed traces, dependencies | **Application Insights** (OpenTelemetry) |
+
+> **Visualization**: Analyze cluster metrics with **Azure Managed Grafana** (or Azure Monitor dashboards with Grafana) and container logs/events with **Log Analytics**. Enable the recommended Prometheus alert rules for common cluster issues.
+
+### AKS codeless auto-instrumentation (preview)
+
+AKS supports **codeless** application monitoring that injects the Azure Monitor OpenTelemetry Distro into your pods with no code change.
+
+| Aspect | Detail |
+|--------|--------|
+| **Languages** | Java and Node.js (public preview); .NET and Python (limited preview) |
+| **Platform** | **Linux node pools only** (Windows node pools not supported) |
+| **Enable on cluster** | `az aks update --enable-azure-monitor-app-monitoring` (also available at cluster create, or via the portal **Monitor Settings → Enable support for auto-instrumentation**) |
+| **Onboarding** | Namespace-wide (an `Instrumentation` custom resource named `default`) or per-deployment (a named CR + pod annotations) |
+| **Activation** | Restart deployments (`kubectl rollout restart`) for injection to take effect |
+| **Experiences** | Full Application Insights **except Live Metrics and Code Analysis**; in-cluster APM tiles at namespace/workload/pod scope with a *View in Application Insights* deep link |
+
+```azurecli
+# Enable the capability on the cluster
+az aks update --resource-group myRG --name myAKS --enable-azure-monitor-app-monitoring
+```
+
+```yaml
+# Namespace-wide onboarding: Instrumentation custom resource named "default"
+apiVersion: monitor.azure.com/v1
+kind: Instrumentation
+metadata:
+  name: default
+  namespace: mynamespace
+spec:
+  settings:
+    autoInstrumentationPlatforms: ["Java", "NodeJs"]
+  destination:
+    applicationInsightsConnectionString: "InstrumentationKey=...;IngestionEndpoint=...;LiveEndpoint=..."
+```
+
+**Operational notes:**
+
+- **Precedence** when both manual and auto-instrumentation are present: for **Node.js**, manual instrumentation wins; for **Java**, autoinstrumentation wins. Duplicate telemetry is always prevented.
+- **Stay current**: the feature injects the latest Distro on each restart. **Restart or redeploy weekly** so long-running deployments pick up the latest security fixes.
+- **Application logs**: add the annotation `monitor.azure.com/enable-application-logs: "true"` to collect app logs into Application Insights (correlated with traces).
+- **Disable**: remove the `Instrumentation` CR and `rollout restart` for a namespace; use `az aks update --disable-azure-monitor-app-monitoring` for the whole cluster.
+
+### Azure Container Apps
+
+> **Key gotcha**: Azure Container Apps **does not support the Application Insights auto-instrumentation agent**. Instrument your application code with the **OpenTelemetry Distro/SDK** and send telemetry to Application Insights.
+
+Built-in ACA observability complements Application Insights:
+
+| Feature | Purpose |
+|---------|---------|
+| **Log streaming** & **container console** | Real-time logs and interactive debugging during dev/test |
+| **Azure Monitor metrics** | Compute/network usage, comparable across revisions |
+| **Application logging → Log Analytics** | Query system and app logs with KQL |
+| **Azure Monitor alerts** | Alert per revision on metric/log conditions |
+| **Managed OpenTelemetry agent** (environment-level) | Export app telemetry to endpoints including Application Insights |
+
+### Cost and configuration best practices (Kubernetes)
+
+| Recommendation | Benefit |
+|----------------|---------|
+| Use **Managed Prometheus** for metrics; don't also send Prometheus metrics to Log Analytics | Avoids redundant, double-billed metric data |
+| Convert Container Insights logs to **`ContainerLogV2`** and use the **Basic Logs** plan | Significant ingestion cost savings for high-volume container logs |
+| Use **resource-specific** AKS resource logs and collect only needed control-plane categories | Enables Basic Logs and avoids collecting logs you never query |
+| Use **managed identity** auth (default) and **Private Link** for cluster → workspace traffic | Removes local auth and keeps ingestion on private networks |
 
 ---
 
@@ -907,12 +1158,14 @@ public class HealthCheckFilter : ITelemetryProcessor
 
 #### 4. Use Basic Logs Plan
 
-For high-volume, infrequently-queried tables, switch to Basic Logs plan:
+For high-volume, infrequently-queried tables, switch to the Basic Logs plan:
 
-| Plan | Ingestion Cost | Query Cost | Retention |
-|------|----------------|------------|-----------|
-| Analytics | Standard | Included | 30-730 days |
-| Basic | ~67% less | Per query | 8 days |
+| Plan | Ingestion Cost | Query Cost | Interactive Retention | Total (Long-term) Retention |
+|------|----------------|------------|----------------------|-----------------------------|
+| Analytics | Standard | Included (no per-query charge) | 30-730 days | Up to 12 years |
+| Basic | Reduced flat rate | Billed per GB scanned | Fixed 30 days | Up to 12 years |
+
+> **Note**: Basic Logs interactive retention is fixed at **30 days**; data beyond that moves to low-cost long-term retention (accessible via search jobs). Not all tables support the Basic plan, and Basic tables have query limitations. Verify table support before switching.
 
 ### Cost Monitoring Query
 
@@ -926,6 +1179,46 @@ union withsource=TableName *
     by TableName
 | order by DataSizeGB desc
 ```
+
+### Diagnose Ingestion Spikes
+
+When ingestion (and cost) rises unexpectedly, work **top-down** to find the source *before* applying broad sampling or a daily cap.
+
+**Step 1 — Identify the resource.** In the Azure portal, open **Cost Management → Cost analysis** and chart cost by resource to find the offending Application Insights resource or workspace.
+
+**Step 2 — Identify the noisiest table** (by billed bytes):
+
+```kusto
+// By billed bytes across App* tables in the workspace
+search *
+| where TimeGenerated > ago(7d)
+| where _IsBillable == true
+| summarize BilledGB = sum(_BilledSize) / 1e9 by $table
+| sort by BilledGB desc
+```
+
+**Step 3 — Break down the noisy table by contributor** (role, then operation / message / dependency type / SDK version):
+
+```kusto
+AppTraces
+| where TimeGenerated > ago(7d) and _IsBillable == true
+| summarize BilledGB = sum(_BilledSize) / 1e9 by AppRoleName
+| sort by BilledGB desc
+// then drill deeper: | summarize count() by OperationName / Message / SDKVersion
+```
+
+**Step 4 — Investigate the trend over time** to pinpoint when a new noisy source appeared:
+
+```kusto
+AppDependencies
+| where TimeGenerated > ago(30d)
+| summarize count() by bin(TimeGenerated, 1d), DependencyType
+| sort by TimeGenerated desc
+```
+
+**Step 5 — Use the Workspace Insights Usage workbook.** In the Log Analytics workspace, open **Monitoring → Workbooks → Usage** for a per-table and per-resource ingestion breakdown.
+
+**Remediation** (see [Sampling Strategies](#sampling-strategies) and the methods above): add sampling overrides to exclude health checks and noisy endpoints, reduce log levels, disable unneeded instrumentation modules, adjust the daily cap, or move high-volume/rarely-queried tables to the **Basic Logs** plan.
 
 ---
 
@@ -1009,6 +1302,8 @@ public class PrivacyTelemetryInitializer : ITelemetryInitializer
 | Same region as Log Analytics | Reduces cross-region failure risk |
 | Resilient workspace design | Continuous monitoring during failures |
 | Infrastructure as Code | Quick recovery of dashboards, alerts, queries |
+| Conduct failure-mode analysis for monitoring outages | Define app behavior if the ingestion endpoint is unreachable at boot or runtime |
+| Dedicated cluster (customer-managed keys, commitment tier) with availability zones / workspace replication | Cross-region resilience when telemetry availability within retention is business-critical |
 
 ### Security
 
@@ -1018,6 +1313,8 @@ public class PrivacyTelemetryInitializer : ITelemetryInitializer
 | Implement Private Link | Network isolation |
 | Enable customer-managed keys | Control over encryption |
 | Don't store PII | Compliance with GDPR, etc. |
+| Use connection strings (not instrumentation keys) | Reliable ingestion; regional endpoints; no global-endpoint dependency |
+| Define a personal-data management strategy; keep IP collection off by default | Reduces personal data, but telemetry can still contain PII via user IDs, URLs, custom properties, and exception payloads |
 
 ### Cost Optimization
 
@@ -1036,6 +1333,8 @@ public class PrivacyTelemetryInitializer : ITelemetryInitializer
 | Use autoinstrumentation when possible | Reduced maintenance |
 | Implement availability tests | Proactive monitoring |
 | Configure meaningful alerts | Actionable notifications |
+| Use release annotations and work-item integration | Correlate deployments with telemetry; create work items with embedded App Insights data |
+| Adopt the OpenTelemetry Distro over the classic SDK | Avoids a future forced migration from the classic API |
 
 ### Performance Efficiency
 
@@ -1044,6 +1343,15 @@ public class PrivacyTelemetryInitializer : ITelemetryInitializer
 | Deploy in same region as workload | Reduced latency |
 | Configure appropriate profiling frequency | Minimize overhead |
 | Use preaggregated metrics | Efficient querying |
+
+### Governance (Azure Policy and Advisor)
+
+| Control | Benefit |
+|---------|---------|
+| **Azure Policy** — enforce linking Application Insights to a Log Analytics workspace | Ensures logs are encrypted and centrally governed |
+| **Azure Policy** — audit Application Insights that allow ingestion from public networks or from sources not authenticated by Microsoft Entra ID | Flags components not enforcing authenticated ingestion; pair with AMPLS/Private Link for network isolation |
+| **Azure Policy** — auto-configure diagnostic settings | Consistent, automatic log collection across resources |
+| **Azure Advisor** recommendations | Personalized best-practice guidance for your App Insights deployment |
 
 ---
 
@@ -1063,6 +1371,8 @@ public class PrivacyTelemetryInitializer : ITelemetryInitializer
 - [ ] Cloud role name configured for each service
 - [ ] Connection string validated
 - [ ] Test telemetry flowing to Application Insights
+- [ ] Client-side monitoring (JavaScript SDK) enabled for browser apps, if applicable
+- [ ] Container/Kubernetes workloads instrumented (AKS autoinstrumentation or OpenTelemetry; Container Apps via OpenTelemetry)
 
 #### Sampling & Data Management
 - [ ] Sampling strategy defined and configured
@@ -1115,6 +1425,276 @@ public class PrivacyTelemetryInitializer : ITelemetryInitializer
 
 ---
 
+## FAQ: IIS Auto-Instrumentation and Operations
+
+This section addresses common operational questions about the **Application Insights Agent** (formerly *Status Monitor v2*) — the codeless auto-instrumentation used for **.NET Framework and .NET applications hosted on your own Windows/IIS servers** (on-premises or IaaS VMs). It is distinct from Azure App Service codeless attach and from the OpenTelemetry Distro.
+
+### How IIS auto-instrumentation works
+
+The Application Insights Agent is delivered as the `Az.ApplicationMonitor` PowerShell module. When enabled, it attaches to IIS worker processes (`w3wp.exe`) **without any code change or redeploy** using two mechanisms:
+
+```mermaid
+flowchart TB
+    PS[PowerShell: Enable-ApplicationInsightsMonitoring]
+    ENV[Machine env vars set<br/>COR_ENABLE_PROFILING=1<br/>COR_PROFILER=&#123;324F817A...&#125;]
+    GAC[HTTP module installed to GAC<br/>RedfieldIISModule]
+    RESET[IISReset / app pool recycle]
+    W3WP[w3wp.exe starts]
+    PROF[CLR Profiler attaches<br/>MicrosoftInstrumentationEngine]
+    SDK[Application Insights SDK injected in-process]
+    AI[Telemetry to Application Insights]
+
+    PS --> ENV
+    PS --> GAC
+    ENV --> RESET
+    GAC --> RESET
+    RESET --> W3WP
+    W3WP --> PROF
+    PROF --> SDK
+    SDK --> AI
+
+    style PS fill:#e3f2fd
+    style SDK fill:#c8e6c9
+    style RESET fill:#fff3e0
+```
+
+Because the profiler only attaches when a worker process **starts**, and the injected SDK only initializes once the application **receives its first request**, both enablement and troubleshooting depend on process lifecycle events.
+
+> **Strategic recommendation**: The codeless Agent (v1.x) is intentionally limited — it does not expose advanced SDK configuration and does not instrument some IIS topologies (see below). For new or actively maintained applications, migrate to the **[Azure Monitor OpenTelemetry Distro](#opentelemetry-instrumentation-recommended)**, which gives you full control over sampling, filtering, and dependency collection. The classic Application Insights SDK is now legacy (superseded by OpenTelemetry) and should be treated only as a short-term bridge, not a strategic target. Use the Agent primarily for legacy apps you cannot recompile.
+
+---
+
+### Q1. Why does the agent lose heartbeat / show intermittent stability?
+
+**Heartbeat** is a periodic property (surfaced as a custom metric/dimension) emitted by the injected `WindowsServer` telemetry module. Losing heartbeat almost always means the **worker process stopped emitting telemetry**, not that the network dropped. The most common causes on IIS are:
+
+| Cause | Explanation | Mitigation |
+|-------|-------------|------------|
+| **App pool idle time-out** | IIS stops the worker process after inactivity (**default 20 minutes**). No process = no heartbeat until the next request restarts it. | Set the app pool **Idle Time-out** to `0` and **Start Mode** to `AlwaysRunning`; use Application Initialization / preload. |
+| **App pool recycling** | Scheduled recycles (default every 29 hours) or memory-limit recycles restart `w3wp.exe`, briefly interrupting telemetry. | Align recycle schedule with low-traffic windows; expect short gaps. |
+| **Profiler failed to re-attach** | After a recycle, the CLR profiler must re-attach. A DLL conflict or missing env var can leave the new process uninstrumented (see [Q3](#q3-why-do-some-servers-report-no-data-dll-loading-problem)). | Run `Get-ApplicationInsightsMonitoringStatus -InspectProcess` after a recycle. |
+| **Multiple instances / load balancing** | Heartbeat is per role instance. One quiet instance can look like "lost heartbeat" when it is simply idle. | Filter heartbeat queries by `AppRoleInstance` (the `App*` Log Analytics tables use `AppRoleInstance`; the classic schema uses `cloud_RoleInstance`). |
+
+> **Important**: Heartbeat is **not affected by sampling** — sampling drops requests/dependencies/traces, but the heartbeat metric is preserved. If heartbeat disappears, investigate the process lifecycle, not sampling.
+
+**Diagnostic query** (gaps per instance):
+
+```kusto
+AppMetrics
+| where TimeGenerated > ago(6h)
+| where Name == "HeartbeatState"
+| summarize LastSeen = max(TimeGenerated) by AppRoleInstance
+| extend MinutesSinceHeartbeat = datetime_diff('minute', now(), LastSeen)
+| order by MinutesSinceHeartbeat desc
+```
+
+If a truly stable, always-on signal is required regardless of app pool state, complement the agent with an external **[availability test](#availability-tests)** rather than relying on heartbeat.
+
+---
+
+### Q2. How do I enable/disable the agent, and what is the impact of an IIS restart?
+
+Enablement and disablement are performed with the `Az.ApplicationMonitor` cmdlets from an **elevated PowerShell 5.1** session:
+
+```powershell
+# Install the module (once per server)
+Install-Module -Name Az.ApplicationMonitor -AllowPrerelease -AcceptLicense
+
+# Enable monitoring for all IIS apps on the server
+Enable-ApplicationInsightsMonitoring -ConnectionString "InstrumentationKey=xxx;IngestionEndpoint=https://xxx.in.applicationinsights.azure.com/"
+
+# Check status (per process)
+Get-ApplicationInsightsMonitoringStatus -InspectProcess
+
+# Disable monitoring
+Disable-ApplicationInsightsMonitoring
+```
+
+**Impact of IIS restart:**
+
+| Action | Requires restart? | Why |
+|--------|-------------------|-----|
+| **Enabling** the agent | Yes — an `iisreset` (or app pool recycle) is needed | The CLR profiler only attaches when `w3wp.exe` **starts**; machine-level environment variables are read at process start. |
+| **Disabling** the agent | Yes — recycle to fully detach | The profiler stays attached in already-running processes until they restart. |
+| **Changing connection string** | Yes | Re-read at process start. |
+| **Application redeploy** | No extra restart needed | The agent re-attaches automatically to the new process (codeless — no app change). |
+
+**Key points for the customer:**
+
+- Enabling/disabling is **codeless**: no application redeploy, no `web.config` change in your project.
+- Every enable/disable/config change implies a **brief interruption** during the `iisreset` or app pool recycle — schedule it in a maintenance window.
+- Use a **rolling approach** in a web farm: recycle one node at a time to avoid a full outage.
+- `Enable-InstrumentationEngine` (see [Q4](#q4-why-is-sql-query-information-collected-in-some-cases-but-not-others)) also requires a restart to take effect.
+
+---
+
+### Q3. Why do some servers report no data (DLL loading problem)?
+
+When one server sends telemetry and an identically configured server does not, the profiler on the failing server is being **blocked from attaching or injecting the HTTP module**. The documented root causes are:
+
+| Root cause | Symptom | Fix |
+|------------|---------|-----|
+| **Conflicting DLLs in the app's `bin` folder** | ETW log shows `Found 'System.Diagnostics.DiagnosticSource...' assembly, skipping attaching redfield binaries`. | Remove `Microsoft.ApplicationInsights.dll`, `Microsoft.AspNet.TelemetryCorrelation.dll`, and `System.Diagnostics.DiagnosticSource.dll` if the app doesn't actually use them (they ship in some Visual Studio templates). If the app *does* use the SDK, don't also use codeless attach. |
+| **IIS shared configuration** | HTTP module cannot be injected across the shared config; no request telemetry. | Run `Enable-ApplicationInsightsMonitoring` on **each** web server (installs the DLL into each server's GAC), then add the `ManagedHttpModuleHelper` module to `ApplicationHost.config`. |
+| **IIS nested applications** | Child/nested apps not instrumented (Agent v1.0 limitation). | Restructure or instrument with the SDK/OpenTelemetry. |
+| **Classic pipeline mode app pool** | Apps in **Classic** managed pipeline mode are not instrumented. | Switch the app pool to **Integrated** pipeline mode. |
+| **PowerShell 6/7 used** | Module fails or behaves unexpectedly. | Use **PowerShell 5.1** — the module is not compatible with PowerShell 6/7. |
+| **App never received a request** | Runtime status never initializes. | Browse the app to warm it up, then re-check status. |
+
+**Verification workflow on a "no data" server:**
+
+```powershell
+# 1. Confirm the profiler DLLs are loaded (expect at least 12 DLLs when healthy)
+Get-ApplicationInsightsMonitoringStatus -InspectProcess
+
+# 2. Confirm the profiler environment variables are set on the worker process
+(Get-Process -Id <w3wp-pid>).StartInfo.EnvironmentVariables
+# Expect: COR_ENABLE_PROFILING=1, COR_PROFILER={324F817A-7420-4E6D-B3C1-143FBED6D855}, etc.
+```
+
+You can also use Sysinternals (`Handle.exe`, `ListDLLs.exe`) or collect ETW logs with **PerfView** (do an `iisreset /stop`, start collection, `iisreset /start`, load the app, stop collection) to confirm whether the redfield binaries attached.
+
+---
+
+### Q4. Why is SQL query information collected in some cases but not others?
+
+This is expected behavior driven by **two independent settings**:
+
+1. **Server and database name are *always* collected** for SQL dependencies — this is the dependency `target` and `name`.
+2. **The full SQL command text is *not* collected by default.** Capturing the actual query text requires the **Instrumentation Engine** to be enabled:
+
+```powershell
+# Enable full SQL command text capture for the codeless agent
+Enable-InstrumentationEngine
+# Requires an IISReset / app pool recycle to take effect
+```
+
+So the pattern the customer observes — *"sometimes the SQL query shows, sometimes it doesn't"* — usually comes down to:
+
+| Factor | Query text captured? |
+|--------|----------------------|
+| Instrumentation Engine enabled | Yes — full command text in the dependency `data` field |
+| Instrumentation Engine **not** enabled | No — only server + database name |
+| Client is `System.Data.SqlClient` / `Microsoft.Data.SqlClient` | Supported |
+| Other data-access stacks (some ORMs, non-SQL-Server providers) | May not surface full text |
+| Stored procedure calls | Procedure **name** captured; parameter values are not |
+
+> **Security note**: Full SQL text can contain sensitive data embedded in queries. Enable it deliberately, and avoid it where PII/PHI could appear inline. For code-based instrumentation, the equivalent switch is `enableSqlCommandTextInstrumentation` (OpenTelemetry / SDK / Azure Functions `host.json`).
+
+**Check what you're actually capturing:**
+
+```kusto
+AppDependencies
+| where TimeGenerated > ago(1h)
+| where DependencyType == "SQL"
+| project TimeGenerated, Target, Name, Data, Success, ResultCode
+| take 50
+```
+
+If `Data` only shows a server/database and `Name` a table or procedure — but never the full statement — the Instrumentation Engine is not enabled.
+
+---
+
+### Q5. How do I manage sampling with IIS auto-instrumentation?
+
+The injected .NET Framework SDK enables **adaptive sampling by default** (target of ~5 telemetry items per second per node). However, **Agent v1.x does not expose the SDK configuration** (`ApplicationInsights.config`) to you, so you cannot easily retune adaptive sampling the way you would in an SDK-instrumented app.
+
+Your options, in order of preference:
+
+| Option | Where it runs | Notes |
+|--------|---------------|-------|
+| **Ingestion sampling** on the Application Insights resource | Server-side | Configurable on the resource (**Usage and estimated costs** → sampling). Works with codeless attach, but drops data *after* transmission — least efficient. |
+| **Daily cap** | Server-side | Safety net against cost spikes; causes data loss when hit (see [Cost Optimization](#cost-optimization)). |
+| **Move to OpenTelemetry / SDK** | In-process | The only way to get precise, trace-consistent sampling control (fixed-rate, rate-limited, per-endpoint overrides). See [Sampling Strategies](#sampling-strategies). |
+
+> **Recommendation**: If sampling control is a real requirement (high volume, cost sensitivity, or the need to exclude health checks), that is a strong signal to migrate that workload from codeless attach to the **OpenTelemetry Distro**, where you control sampling explicitly. Relying on ingestion sampling alone is discouraged because the data is already transmitted before being dropped.
+
+Refer to the main [Sampling Strategies](#sampling-strategies) section for the full sampling model, decision matrix, and code samples.
+
+---
+
+### Q6. What is the relationship between the "error content" and an encountered error (e.g., HTTP 500)?
+
+An HTTP 500 seen by the user maps to **two correlated but distinct telemetry items**:
+
+```mermaid
+flowchart LR
+    REQ["Request telemetry<br/>success = false<br/>resultCode = 500<br/>(the SYMPTOM)"]
+    EXC["Exception telemetry<br/>type + message + stack<br/>(the CAUSE)"]
+    REQ -->|operation_Id| EXC
+
+    style REQ fill:#ffcdd2
+    style EXC fill:#fff3e0
+```
+
+| Telemetry | Table | Represents |
+|-----------|-------|------------|
+| **Request** with `resultCode = 500`, `success = false` | `AppRequests` | The *symptom* — the failed HTTP response the client received. |
+| **Exception** (type, message, stack trace) | `AppExceptions` | The *cause* — the unhandled exception, if one was thrown. |
+
+They are joined by the **operation ID** (`OperationId` in the `App*` Log Analytics tables; `operation_Id` in the classic Application Insights schema and portal transaction view). In the portal, open the **Failures** view → select the failing operation → drill into a sample → the end-to-end transaction shows the linked exception and stack.
+
+**Important caveats the customer should understand:**
+
+- **Not every HTTP 500 has an exception.** If the application returns `500` explicitly (e.g., a controller sets the status code) or **catches and swallows** the exception, there is a failed request but **no** correlated `AppExceptions` record. In that case, the "error content" must come from your own trace/log statements (`AppTraces`), not from auto-collected exceptions.
+- The codeless agent auto-collects **unhandled** exceptions. First-chance/handled exceptions need code-level instrumentation or **[Snapshot Debugger](#snapshot-debugger)**.
+- `resultCode` is the HTTP status; the exception `type`/`message`/stack is the diagnostic detail.
+
+**Join symptom to cause with KQL:**
+
+```kusto
+AppRequests
+| where TimeGenerated > ago(1h) and ResultCode == "500"
+| join kind=leftouter (
+    AppExceptions
+    | where TimeGenerated > ago(1h)
+    | project OperationId, ExceptionType, OuterMessage, ProblemId
+) on $left.OperationId == $right.OperationId
+| project TimeGenerated, Name, ResultCode, ExceptionType, OuterMessage, OperationId
+| order by TimeGenerated desc
+```
+
+Rows with a null `ExceptionType` are the "500 without a captured exception" case — investigate application logging for those.
+
+---
+
+### Q7. What does the "Usage" pane show, and why is it sometimes empty?
+
+The **Usage** experiences answer *"how are people using the application?"* rather than *"is it healthy?"*:
+
+| Usage experience | Answers |
+|------------------|---------|
+| **Users / Sessions / Events** | How many unique users and sessions, and which events fire |
+| **Funnels** | Where users drop off in a multi-step flow |
+| **User Flows** | What users do before/after a given event |
+| **Retention** | Do users come back over time |
+| **Cohorts** | Reusable groups of users/events for analysis |
+| **Impact** | How load times/dimensions affect conversion |
+
+**Why Usage is often empty for IIS server-only monitoring:** the Usage pane is built primarily from **page views** and **custom events**, and from the **anonymous user ID / session ID** that the **[JavaScript (Browser) SDK](#instrumentation-methods)** sets client-side. Codeless IIS auto-instrumentation only collects **server-side** telemetry (requests, dependencies, exceptions) — it does **not** produce page views, users, or sessions. As a result:
+
+| Setup | Usage pane data |
+|-------|-----------------|
+| Server-side auto-instrumentation only | Sparse — no users/sessions/page views |
+| + JavaScript SDK on the browser pages | Full Usage analytics (users, sessions, funnels, flows) |
+| + `TrackEvent` custom events (server or client) | Business events appear in Users/Events/Funnels |
+
+**To light up Usage:** add the **Application Insights JavaScript SDK** to your web pages (or enable client-side monitoring), and instrument meaningful business actions with **custom events**. For a purely server-side workload with no browser front end, Usage is not the right tool — use the **Performance**, **Failures**, and **Metrics** experiences instead.
+
+---
+
+### Q8. Agent vs. SDK vs. OpenTelemetry — which should we use on IIS?
+
+| Approach | Code change | Sampling control | Full SQL text | Best for |
+|----------|-------------|------------------|---------------|----------|
+| **Application Insights Agent** (codeless) | None | Ingestion only (limited) | Requires `Enable-InstrumentationEngine` | Legacy apps you can't recompile; quick coverage |
+| **Classic Application Insights SDK** | Moderate | Full (in `ApplicationInsights.config`) | Configurable | **Legacy** — interim option only; plan OpenTelemetry migration |
+| **Azure Monitor OpenTelemetry Distro** | Minimal | Full (fixed/rate-limited/overrides) | Configurable | New development; strategic, vendor-neutral standard |
+
+> **Direction of travel**: OpenTelemetry is the recommended long-term standard for Azure Monitor. The classic Application Insights SDK is superseded by OpenTelemetry and is on a retirement path — see the [migration guide](https://learn.microsoft.com/azure/azure-monitor/app/migrate-to-opentelemetry). Treat both the codeless Agent and the classic SDK as bridges for legacy IIS workloads, and plan migration of actively developed apps to the OpenTelemetry Distro to gain sampling control, richer configuration, and future support.
+
+---
+
 ## References
 
 ### Official Microsoft Documentation
@@ -1125,6 +1705,41 @@ public class PrivacyTelemetryInitializer : ITelemetryInitializer
 - [Sampling in Application Insights](https://learn.microsoft.com/en-us/azure/azure-monitor/app/opentelemetry-sampling)
 - [Azure Monitor Pricing](https://azure.microsoft.com/pricing/details/monitor/)
 - [Application Insights Service Limits](https://learn.microsoft.com/en-us/azure/azure-monitor/fundamentals/service-limits#application-insights)
+
+### IIS Auto-Instrumentation (Application Insights Agent)
+
+- [Deploy Azure Monitor Application Insights Agent for on-premises servers](https://learn.microsoft.com/en-us/azure/azure-monitor/app/application-insights-asp-net-agent)
+- [Troubleshoot the Application Insights Agent (formerly Status Monitor v2)](https://learn.microsoft.com/troubleshoot/azure/azure-monitor/app-insights/agent/status-monitor-v2-troubleshoot)
+- [Application Insights Agent API reference](https://learn.microsoft.com/en-us/azure/azure-monitor/app/status-monitor-v2-api-reference)
+- [Troubleshoot Application Insights autoinstrumentation](https://learn.microsoft.com/troubleshoot/azure/azure-monitor/app-insights/telemetry/auto-instrumentation-troubleshoot)
+- [Dependency tracking and advanced SQL tracking](https://learn.microsoft.com/en-us/azure/azure-monitor/app/asp-net-dependencies#advanced-sql-tracking-to-get-full-sql-query)
+- [Usage analysis with Application Insights](https://learn.microsoft.com/en-us/azure/azure-monitor/app/usage)
+- [Application Insights FAQ](https://learn.microsoft.com/azure/azure-monitor/app/application-insights-faq)
+
+### Client-Side and Autoinstrumentation
+
+- [Application Insights JavaScript SDK (Real User Monitoring)](https://learn.microsoft.com/en-us/azure/azure-monitor/app/javascript-sdk)
+- [Click Analytics Auto-Collection plug-in](https://learn.microsoft.com/en-us/azure/azure-monitor/app/javascript-feature-extensions)
+- [Autoinstrumentation overview and support matrix](https://learn.microsoft.com/en-us/azure/azure-monitor/app/codeless-overview)
+
+### Containers and Kubernetes
+
+- [Kubernetes monitoring in Azure Monitor](https://learn.microsoft.com/en-us/azure/azure-monitor/containers/kubernetes-monitoring-overview)
+- [Best practices for monitoring Kubernetes with Azure Monitor](https://learn.microsoft.com/en-us/azure/azure-monitor/containers/best-practices-containers)
+- [Codeless monitoring for AKS with Application Insights](https://learn.microsoft.com/en-us/azure/azure-monitor/app/kubernetes-codeless)
+- [Enable monitoring for Kubernetes clusters](https://learn.microsoft.com/en-us/azure/azure-monitor/containers/kubernetes-monitoring-enable)
+- [Observability in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/observability)
+
+### Enterprise Architecture and Workspace Design
+
+- [Azure Monitor enterprise monitoring architecture](https://learn.microsoft.com/en-us/azure/azure-monitor/fundamentals/enterprise-monitoring-architecture)
+- [Azure Monitor data platform](https://learn.microsoft.com/en-us/azure/azure-monitor/fundamentals/data-platform)
+- [Design a Log Analytics workspace architecture](https://learn.microsoft.com/en-us/azure/azure-monitor/logs/workspace-design)
+- [Sample Microsoft Sentinel workspace designs](https://learn.microsoft.com/en-us/azure/sentinel/sample-workspace-designs)
+
+### Cost and Ingestion
+
+- [Troubleshoot high data ingestion in Application Insights](https://learn.microsoft.com/en-us/troubleshoot/azure/azure-monitor/app-insights/telemetry/troubleshoot-high-data-ingestion)
 
 ### GitHub Resources
 
@@ -1143,3 +1758,10 @@ public class PrivacyTelemetryInitializer : ITelemetryInitializer
 - [Daily Cap Configuration](https://learn.microsoft.com/en-us/azure/azure-monitor/logs/daily-cap)
 - [Java Agent Configuration](https://learn.microsoft.com/en-us/azure/azure-monitor/app/java-standalone-config)
 - [Smart Detection](https://learn.microsoft.com/en-us/azure/azure-monitor/alerts/proactive-diagnostics)
+
+### Further Learning (Hands-On)
+
+- [Training path: Create cloud-native apps with .NET and ASP.NET Core](https://learn.microsoft.com/en-us/training/paths/create-microservices-with-dotnet/)
+- [Training module: Implement observability in a .NET cloud-native app with OpenTelemetry](https://learn.microsoft.com/en-us/training/modules/implement-observability-cloud-native-app-with-opentelemetry/)
+- [Sample: eShopLite `dotnet-observability` (OpenTelemetry + Application Insights)](https://github.com/CalinL/mslearn-dotnet-cloudnative/tree/main/dotnet-observability/finished-files/eShopLite)
+- [Sample: eShopOnAzure (eShop variant using Azure services)](https://github.com/Azure-Samples/eShopOnAzure)
